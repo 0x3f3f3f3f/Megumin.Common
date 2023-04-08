@@ -148,7 +148,7 @@ namespace Megumin
         static Collider[] hitColliders = null;
         public virtual bool TryPhysicsTest(Vector3 position,
                                            float radius,
-                                           List<Collider> results,
+                                           ICollection<Collider> results,
                                            Func<Collider, bool> checkCollider = null,
                                            int maxColliders = 20)
         {
