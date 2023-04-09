@@ -38,13 +38,13 @@ namespace Megumin
             {
                 foreach (var item in MecroList)
                 {
-                    sb = sb.Replace($"$({item.Name})", item.Value);
+                    sb = sb.Replace(item.Name, item.Value);
                 }
             }
 
             foreach (var item in Macro)
             {
-                sb = sb.Replace($"$({item.Key})", item.Value);
+                sb = sb.Replace(item.Key, item.Value);
             }
 
             return sb.ToString();
@@ -80,9 +80,9 @@ namespace Megumin
         {
 #if UNITY_EDITOR
 
-            if (!Macro.ContainsKey("ClassName"))
+            if (!Macro.ContainsKey("$(ClassName)"))
             {
-                Macro["ClassName"] = near.name;
+                Macro["$(ClassName)"] = near.name;
             }
 
             var path = UnityEditor.AssetDatabase.GetAssetPath(near);
@@ -92,8 +92,8 @@ namespace Megumin
 
             var finfo = new FileInfo(gp);
 
-            Macro["CodeGenericType"] = near.GetType().Name;
-            Macro["CodeGenericSourceFilePath"] = finfo.ToString();
+            Macro["$(CodeGenericType)"] = near.GetType().Name;
+            Macro["$(CodeGenericSourceFilePath)"] = finfo.ToString();
 
             string fileName = $"{near.name}_GenericCode.cs";
             if (!string.IsNullOrEmpty(replaceFileName))
