@@ -355,6 +355,50 @@ namespace Megumin
             return Template.text;
         }
     }
+
+    public static class CodeGeneratorExtension_B2F1FF890B2949E1B0431530F1D90322
+    {
+        public static void Test()
+        {
+            string result = "";
+            result = typeof(List<int>).ToCodeString();
+            result = typeof(int[]).ToCodeString();
+
+            result.ToString();
+        }
+
+        public static string ToCodeString(this Type type)
+        {
+            if (type == typeof(void))
+            {
+                return "void";
+            }
+
+            if (type.IsGenericType)
+            {
+                StringBuilder sb = new();
+                Type gd = type.GetGenericTypeDefinition();
+                var gdFullName = gd.FullName;
+                gdFullName = gdFullName[..^2];
+                sb.Append(gdFullName);
+                sb.Append('<');
+                var g = type.GetGenericArguments();
+                for (int i = 0; i < g.Length; i++)
+                {
+                    if (i != 0)
+                    {
+                        sb.Append(',');
+                    }
+                    var gType = g[i];
+                    sb.Append(gType.FullName);
+                }
+                sb.Append('>');
+                return sb.ToString();
+            }
+
+            return type.FullName;
+        }
+    }
 }
 
 
