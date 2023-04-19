@@ -374,6 +374,7 @@ namespace Megumin
                 return "void";
             }
 
+            string result = "";
             if (type.IsGenericType)
             {
                 StringBuilder sb = new();
@@ -390,13 +391,44 @@ namespace Megumin
                         sb.Append(',');
                     }
                     var gType = g[i];
-                    sb.Append(gType.FullName);
+                    sb.Append(gType.ToCodeString());
                 }
                 sb.Append('>');
-                return sb.ToString();
+                result = sb.ToString();
+            }
+            else
+            {
+                result = type.FullName;
             }
 
-            return type.FullName;
+            result = result.Replace("+", ".");
+            return result;
+        }
+
+        /// <summary>
+        /// 类型名转为合法变量名或者合法类名
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static string ToValidVariableName(this Type type)
+        {
+            string result = type.Name;
+            if (type.IsGenericType)
+            {
+                var d = type.GetGenericTypeDefinition();
+                result = d.Name;
+                var gs = type.GetGenericArguments();
+                foreach (var g in gs)
+                {
+                    result += $"_{g.ToValidVariableName()}";
+                }
+            }
+
+            result = result.TrimEnd('&');
+            result = result.Replace("[]", "Array");
+            result = result.Replace(".", "_");
+            result = result.Replace("`", "_");
+            return result;
         }
     }
 }
