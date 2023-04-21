@@ -1,9 +1,8 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
-using System;
 
 namespace Megumin
 {
@@ -19,7 +18,13 @@ namespace Megumin
             public string Value;
         }
 
+        /// <summary>
+        /// 允许一个宏嵌套另一个宏
+        /// </summary>
         public List<Mecro> MecroList { get; set; }
+        /// <summary>
+        /// 允许一个宏嵌套另一个宏
+        /// </summary>
         public Dictionary<string, string> Macro = new Dictionary<string, string>();
 
         /// <summary>
@@ -30,6 +35,11 @@ namespace Megumin
         //TODO
         public static Dictionary<string, string> ProjectMacro = new Dictionary<string, string>();
 
+        /// <summary>
+        /// 递归替换宏。
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
         public string ReplaceMacro(string code)
         {
             StringBuilder sb = new StringBuilder(code);
@@ -47,7 +57,37 @@ namespace Megumin
                 sb = sb.Replace(item.Key, item.Value);
             }
 
-            return sb.ToString();
+            var result = sb.ToString();
+            if (ContainsMacro(result))
+            {
+                result = ReplaceMacro(result);
+            }
+
+            return result;
+        }
+
+        public bool ContainsMacro(string code)
+        {
+            if (MecroList != null)
+            {
+                foreach (var item in MecroList)
+                {
+                    if (code.Contains(item.Name))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            foreach (var item in Macro)
+            {
+                if (code.Contains(item.Key))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public abstract string GetCodeString();
@@ -373,6 +413,34 @@ namespace Megumin
             {
                 return "void";
             }
+            else if (type == typeof(bool))
+            {
+                return "bool";
+            }
+            else if (type == typeof(string))
+            {
+                return "string";
+            }
+            else if (type == typeof(int))
+            {
+                return "int";
+            }
+            else if (type == typeof(long))
+            {
+                return "long";
+            }
+            else if (type == typeof(float))
+            {
+                return "float";
+            }
+            else if (type == typeof(double))
+            {
+                return "double";
+            }
+            else if (type == typeof(decimal))
+            {
+                return "decimal";
+            }
 
             string result = "";
             if (type.IsGenericType)
@@ -429,6 +497,21 @@ namespace Megumin
             result = result.Replace(".", "_");
             result = result.Replace("`", "_");
             return result;
+        }
+
+        public static string UpperStartChar(this string str, int length = 1)
+        {
+            if (str.Length <= length)
+            {
+                return str.ToUpper();
+            }
+            else if (str.Length > length)
+            {
+                var up = str[..length].ToUpper() + str[length..];
+                return up;
+            }
+
+            return str;
         }
     }
 }
