@@ -85,8 +85,8 @@ namespace Megumin
     }
 }
 
-#if UNITY_2022_2_OR_NEWER
-    //Unity 内置
+#if UNITY_2021_3_OR_NEWER
+//Unity 内置
 #else
 
 namespace UnityEngine
