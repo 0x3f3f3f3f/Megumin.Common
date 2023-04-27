@@ -197,32 +197,32 @@ namespace Megumin
             }
         }
 
-        public void Push(string code)
+        public void Push(string code, int indentOffset = 0)
         {
             if (!string.IsNullOrEmpty(code))
             {
-                code = GetIndentStr(Indent) + code;
+                code = GetIndentStr(Indent + indentOffset) + code;
             }
 
             Lines.Add(code);
         }
 
-        public void PushWrapBlankLines(string code, int count = 1)
+        public void PushWrapBlankLines(string code, int count = 1, int indentOffset = 0)
         {
             if (Lines.LastOrDefault() != "")
             {
                 PushBlankLines(count);
             }
 
-            Push(code);
+            Push(code, indentOffset);
             PushBlankLines(count);
         }
 
-        public void Push(CSCodeGenerator generator)
+        public void Push(CSCodeGenerator generator, int indentOffset = 0)
         {
             foreach (var item in generator.Lines)
             {
-                Push(item);
+                Push(item, indentOffset);
             }
         }
 
@@ -231,10 +231,10 @@ namespace Megumin
         /// 内部根据<see cref="Environment.NewLine"/>,拆分成单行添加到生成器中。
         /// </summary>
         /// <param name="template"></param>
-        public void PushTemplate(string template)
+        public void PushTemplate(string template, int indentOffset = 0)
         {
             var newLine = Environment.NewLine;
-            PushTemplate(template, newLine);
+            PushTemplate(template, newLine, indentOffset);
         }
 
         /// <summary>
@@ -242,16 +242,16 @@ namespace Megumin
         /// 内部根据指定 换行符拆,拆分成单行添加到生成器中。
         /// </summary>
         /// <param name="template"></param>
-        public void PushTemplate(string template, string LF)
+        public void PushTemplate(string template, string LF, int indentOffset = 0)
         {
             var lines = template.Split(LF);
             foreach (var line in lines)
             {
-                Push(line);
+                Push(line, indentOffset);
             }
         }
 
-        public void PushComment(string comment)
+        public void PushComment(string comment, int indentOffset = 0)
         {
             if (comment == null || comment.Length == 0)
             {
@@ -265,9 +265,9 @@ namespace Megumin
 
             //增加注释
             //Push("");  //不要自动添加空行
-            Push(@$"/// <summary>");
-            Push(@$"/// {comment}");
-            Push(@$"/// </summary>");
+            Push(@$"/// <summary>", indentOffset);
+            Push(@$"/// {comment}", indentOffset);
+            Push(@$"/// </summary>", indentOffset);
         }
 
         public void PushComment(params string[] comments)
