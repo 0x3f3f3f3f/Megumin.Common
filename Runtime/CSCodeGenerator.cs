@@ -522,6 +522,36 @@ namespace Megumin
             return result;
         }
 
+        public static string ToCodeString(this object obj)
+        {
+            if (obj == null)
+            {
+                return "null";
+            }
+
+            if (obj is bool boolObj)
+            {
+                return boolObj ? "true" : "false";
+            }
+
+            if (obj is Type type)
+            {
+                return type.ToCodeString();
+            }
+
+            if (obj is string stringObj)
+            {
+                return $"\"{stringObj}\"";
+            }
+
+            if (obj is float floatObj)
+            {
+                return $"{floatObj}f";
+            }
+
+            return obj.ToString();
+        }
+
         /// <summary>
         /// 类型名转为合法变量名或者合法类名
         /// </summary>
