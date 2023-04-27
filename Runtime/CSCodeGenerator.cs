@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -206,6 +207,17 @@ namespace Megumin
             Lines.Add(code);
         }
 
+        public void PushWrapBlankLines(string code, int count = 1)
+        {
+            if (Lines.LastOrDefault() != "")
+            {
+                PushBlankLines(count);
+            }
+
+            Push(code);
+            PushBlankLines(count);
+        }
+
         public void Push(CSCodeGenerator generator)
         {
             foreach (var item in generator.Lines)
@@ -297,6 +309,23 @@ namespace Megumin
             Push(@$"}}");
         }
 
+        public void BeginRegion(string region = null)
+        {
+            var code = @$"#region";
+
+            if (!string.IsNullOrEmpty(region))
+            {
+                code = @$"#region {region}";
+            }
+
+            PushWrapBlankLines(code);
+        }
+
+        public void EndRegion()
+        {
+            PushWrapBlankLines(@$"#endregion");
+        }
+
         /// <summary>
         /// 结束一个区域,附加一个字符，通常用于 "," 或者 ";"
         /// </summary>
@@ -360,6 +389,21 @@ namespace Megumin
             }
         }
 
+        public class RegionScope : IDisposable
+        {
+            CSCodeGenerator g;
+            public RegionScope(CSCodeGenerator g, string region = null)
+            {
+                this.g = g;
+                g.BeginRegion(region);
+            }
+
+            public void Dispose()
+            {
+                g.EndRegion();
+            }
+        }
+
         /// <summary>
         /// 使用using
         /// </summary>
@@ -380,6 +424,11 @@ namespace Megumin
         public Scope GetNewScope(string endWith = null)
         {
             return new Scope(this) { EndWith = endWith };
+        }
+
+        public RegionScope GetRegionScope(string region = null)
+        {
+            return new RegionScope(this, region);
         }
     }
 
