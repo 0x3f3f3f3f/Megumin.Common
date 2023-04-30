@@ -12,7 +12,7 @@ namespace Megumin
         public static bool InspectorShowTagList = false;
 
         [Tag]
-        public List<string> Tags = new List<string>() { "Untagged" };
+        public List<string> Tags = new() { "Untagged" };
 
         public TagMask()
         {
@@ -74,7 +74,7 @@ namespace UnityEditor.Megumin
 #endif
     internal sealed class TagMaskDrawer : PropertyDrawer
     {
-        List<string> mytags = new List<string>();
+        List<string> mytags = new();
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             if (TagMask.InspectorShowTagList)
