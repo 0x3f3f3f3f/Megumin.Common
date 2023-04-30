@@ -450,15 +450,19 @@ namespace Megumin
         public static void Test()
         {
             string result = "";
-            result = typeof(List<int>).ToCodeString();
-            result = typeof(int[]).ToCodeString();
+            result = typeof(List<int>).ToCode();
+            result = typeof(int[]).ToCode();
 
             result.ToString();
         }
 
-        public static string ToCodeString(this Type type)
+        public static string ToCode(this Type type)
         {
-            if (type == typeof(void))
+            if (type == null)
+            {
+                return "";
+            }
+            else if (type == typeof(void))
             {
                 return "void";
             }
@@ -466,17 +470,41 @@ namespace Megumin
             {
                 return "bool";
             }
-            else if (type == typeof(string))
+            else if (type == typeof(byte))
             {
-                return "string";
+                return "byte";
+            }
+            else if (type == typeof(sbyte))
+            {
+                return "sbyte";
+            }
+            else if (type == typeof(char))
+            {
+                return "char";
+            }
+            else if (type == typeof(short))
+            {
+                return "short";
+            }
+            else if (type == typeof(ushort))
+            {
+                return "ushort";
             }
             else if (type == typeof(int))
             {
                 return "int";
             }
+            else if (type == typeof(uint))
+            {
+                return "uint";
+            }
             else if (type == typeof(long))
             {
                 return "long";
+            }
+            else if (type == typeof(ulong))
+            {
+                return "ulong";
             }
             else if (type == typeof(float))
             {
@@ -490,11 +518,14 @@ namespace Megumin
             {
                 return "decimal";
             }
+            else if (type == typeof(string))
+            {
+                return "string";
+            }
 
-            string result = "";
+            StringBuilder sb = new();
             if (type.IsGenericType)
             {
-                StringBuilder sb = new();
                 Type gd = type.GetGenericTypeDefinition();
                 var gdFullName = gd.FullName;
                 gdFullName = gdFullName[..^2];
@@ -508,21 +539,26 @@ namespace Megumin
                         sb.Append(',');
                     }
                     var gType = g[i];
-                    sb.Append(gType.ToCodeString());
+                    sb.Append(gType.ToCode());
                 }
                 sb.Append('>');
-                result = sb.ToString();
+            }
+            else if (type.IsArray)
+            {
+                var elementType = type.GetElementType();
+                sb.Append(elementType.ToCode());
+                sb.Append("[]");
             }
             else
             {
-                result = type.FullName;
+                sb.Append(type.FullName);
             }
 
-            result = result.Replace("+", ".");
-            return result;
+            sb.Replace('+', '.');
+            return sb.ToString();
         }
 
-        public static string ToCodeString(this object obj)
+        public static string ToCode<T>(this T obj)
         {
             if (obj == null)
             {
@@ -536,7 +572,7 @@ namespace Megumin
 
             if (obj is Type type)
             {
-                return type.ToCodeString();
+                return type.ToCode();
             }
 
             if (obj is string stringObj)
