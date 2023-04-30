@@ -447,6 +447,7 @@ namespace Megumin
 
     public static class CodeGeneratorExtension_B2F1FF890B2949E1B0431530F1D90322
     {
+        //[UnityEditor.MenuItem("Tools/Megumin/CodeGenerator Test")]
         public static void Test()
         {
             string result = "";
@@ -454,6 +455,13 @@ namespace Megumin
             result = typeof(int[]).ToCode();
 
             result.ToString();
+
+            var enum1 = AdditionalCanvasShaderChannels.Tangent;
+            var code1 = enum1.ToCode();
+            var enum2 = AdditionalCanvasShaderChannels.TexCoord1 | AdditionalCanvasShaderChannels.TexCoord2;
+            var code2 = enum2.ToCode();
+
+            code2.ToString();
         }
 
         public static string ToCode(this Type type)
@@ -564,25 +572,26 @@ namespace Megumin
             {
                 return "null";
             }
-
-            if (obj is bool boolObj)
+            else if (obj is bool boolObj)
             {
                 return boolObj ? "true" : "false";
             }
-
-            if (obj is Type type)
+            else if (obj is Type type)
             {
                 return type.ToCode();
             }
-
-            if (obj is string stringObj)
+            else if (obj is string stringObj)
             {
                 return $"\"{stringObj}\"";
             }
-
-            if (obj is float floatObj)
+            else if (obj is float floatObj)
             {
                 return $"{floatObj}f";
+            }
+            else if (obj is Enum)
+            {
+                //@enum.GetTypeCode();
+                return $"(({obj.GetType().FullName}){Convert.ToInt64(obj)})";
             }
 
             return obj.ToString();
