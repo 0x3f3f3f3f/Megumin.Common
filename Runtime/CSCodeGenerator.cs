@@ -43,8 +43,22 @@ namespace Megumin
         /// <returns></returns>
         public string ReplaceMacro(string code)
         {
-            StringBuilder sb = new(code);
+            if (ContainsMacro(code) == false)
+            {
+                return code;
+            }
 
+            StringBuilder sb = new(code);
+            return ReplaceMacro(sb);
+        }
+
+        /// <summary>
+        /// 递归替换宏。
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <returns></returns>
+        public string ReplaceMacro(StringBuilder sb)
+        {
             if (MecroList != null)
             {
                 foreach (var item in MecroList)
@@ -61,7 +75,7 @@ namespace Megumin
             var result = sb.ToString();
             if (ContainsMacro(result))
             {
-                result = ReplaceMacro(result);
+                result = ReplaceMacro(sb);
             }
 
             return result;
@@ -110,9 +124,8 @@ namespace Megumin
             stringBuilder.Append(NewLine);
             stringBuilder.Append(NewLine);
             stringBuilder.Append(txt);
-            txt = stringBuilder.ToString();
 
-            txt = ReplaceMacro(txt);
+            txt = ReplaceMacro(stringBuilder);
 
             if (encoding == null)
             {
