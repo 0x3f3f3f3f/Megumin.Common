@@ -553,29 +553,54 @@ namespace Megumin
         }
 
         /// <summary>
-        /// 类型名转为合法变量名或者合法类名
+        /// 转为合法标识符字符串，变量名或类型名
+        /// https://learn.microsoft.com/dotnet/csharp/fundamentals/coding-style/identifier-names
         /// </summary>
-        /// <param name="type"></param>
         /// <returns></returns>
-        public static string ToValidVariableName(this Type type)
+        public static string ToIdentifier(this Type type)
         {
-            string result = type.Name;
+            StringBuilder sb = new(type.Name);
             if (type.IsGenericType)
             {
                 var d = type.GetGenericTypeDefinition();
-                result = d.Name;
+                sb.Clear();
+                sb.Append(d.Name);
                 var gs = type.GetGenericArguments();
                 foreach (var g in gs)
                 {
-                    result += $"_{g.ToValidVariableName()}";
+                    sb.Append("_");
+                    sb.Append(g.ToIdentifier());
                 }
             }
 
-            result = result.TrimEnd('&');
-            result = result.Replace("[]", "Array");
-            result = result.Replace(".", "_");
-            result = result.Replace("`", "_");
-            return result;
+            return sb.ToIdentifier();
+        }
+
+        /// <summary>
+        /// 转为合法标识符字符串，变量名或类型名
+        /// https://learn.microsoft.com/dotnet/csharp/fundamentals/coding-style/identifier-names
+        /// </summary>
+        /// <returns></returns>
+        public static string ToIdentifier(this string result)
+        {
+            StringBuilder sb = new(result);
+            return sb.ToIdentifier();
+        }
+
+        /// <summary>
+        /// 转为合法标识符字符串，变量名或类型名
+        /// https://learn.microsoft.com/dotnet/csharp/fundamentals/coding-style/identifier-names
+        /// </summary>
+        /// <returns></returns>
+        public static string ToIdentifier(this StringBuilder sb)
+        {
+            sb.Replace("[]", "Array");
+            sb.Replace('&', '_');
+            sb.Replace('.', '_');
+            sb.Replace('`', '_');
+            sb.Replace(' ', '_');
+            sb.Replace('-', '_');
+            return sb.ToString();
         }
 
         public static string UpperStartChar(this string str, int length = 1)
