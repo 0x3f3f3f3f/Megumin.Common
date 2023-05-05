@@ -132,6 +132,9 @@ namespace Megumin
                 encoding = new System.Text.UTF8Encoding(true);
             }
 
+            System.IO.FileInfo file = new(path);
+            file.Directory?.Create();// If the directory already exists, this method does nothing.
+
             File.WriteAllText(path, txt, encoding);
         }
 
