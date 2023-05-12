@@ -206,6 +206,25 @@ namespace Megumin
         public int Indent { get; internal set; } = 0;
         public List<string> Lines { get; set; } = new List<string>();
 
+        public void Push(string code, int indentOffset = 0)
+        {
+            if (!string.IsNullOrEmpty(code))
+            {
+                code = GetIndentStr(Indent + indentOffset) + code;
+            }
+
+            Lines.Add(code);
+        }
+
+        public void PushLines<T>(T lines, int indentOffset = 0)
+            where T : IEnumerable<string>
+        {
+            foreach (var line in lines)
+            {
+                Push(line, indentOffset);
+            }
+        }
+
         /// <summary>
         /// 添加一个空行
         /// </summary>
@@ -216,16 +235,6 @@ namespace Megumin
             {
                 Push("");
             }
-        }
-
-        public void Push(string code, int indentOffset = 0)
-        {
-            if (!string.IsNullOrEmpty(code))
-            {
-                code = GetIndentStr(Indent + indentOffset) + code;
-            }
-
-            Lines.Add(code);
         }
 
         public void PushWrapBlankLines(string code, int count = 1, int indentOffset = 0)
@@ -248,28 +257,57 @@ namespace Megumin
         }
 
         /// <summary>
-        /// 添加模板代码或者多行代码。
-        /// 内部根据<see cref="Environment.NewLine"/>,拆分成单行添加到生成器中。
+        /// 行分隔符
         /// </summary>
-        /// <param name="template"></param>
-        public void PushTemplate(string template, int indentOffset = 0)
+        public static readonly string[] NewLineSeparator = new string[] { "\r\n", "\n", "\r" };
+
+        public string[] SplitTemplate(string template)
         {
-            var newLine = Environment.NewLine;
-            PushTemplate(template, newLine, indentOffset);
+            return SplitTemplate(template, NewLineSeparator, StringSplitOptions.None);
+        }
+
+        public string[] SplitTemplate(string template, string[] separator, StringSplitOptions options = StringSplitOptions.None)
+        {
+            var lines = template.Split(separator, options);
+            return lines;
         }
 
         /// <summary>
         /// 添加模板代码或者多行代码。
-        /// 内部根据指定 换行符拆,拆分成单行添加到生成器中。
+        /// 内部根据<see cref="NewLineSeparator"/>,拆分成单行添加到生成器中。
         /// </summary>
         /// <param name="template"></param>
-        public void PushTemplate(string template, string LF, int indentOffset = 0)
+        public string[] PushTemplate(string template, int indentOffset = 0)
         {
-            var lines = template.Split(LF);
-            foreach (var line in lines)
-            {
-                Push(line, indentOffset);
-            }
+            return PushTemplate(template, NewLineSeparator, StringSplitOptions.None, indentOffset);
+        }
+
+        /// <summary>
+        /// 添加模板代码或者多行代码。
+        /// </summary>
+        /// <param name="template"></param>
+        public string[] PushTemplate(string template,
+                                     string separator,
+                                     StringSplitOptions options = StringSplitOptions.None,
+                                     int indentOffset = 0)
+        {
+            var lines = template.Split(separator, options);
+            PushLines(lines, indentOffset);
+            return lines;
+        }
+
+        /// <summary>
+        /// 添加模板代码或者多行代码。
+        /// </summary>
+        /// <param name="template"></param>
+        public string[] PushTemplate(string template,
+                                     string[] separator,
+                                     StringSplitOptions options = StringSplitOptions.None,
+                                     int indentOffset = 0)
+        {
+            var lines = SplitTemplate(template, separator, options);
+            PushLines(lines, indentOffset);
+            return lines;
         }
 
         public void PushComment(string comment, int indentOffset = 0)
@@ -387,6 +425,11 @@ namespace Megumin
                 //txt += item + NewLine;
                 stringBuilder.Append(item);
                 stringBuilder.Append(NewLine);
+            }
+
+            if (NewLine != Environment.NewLine)
+            {
+                stringBuilder.Replace(Environment.NewLine, NewLine);
             }
 
             var result = stringBuilder.ToString();
