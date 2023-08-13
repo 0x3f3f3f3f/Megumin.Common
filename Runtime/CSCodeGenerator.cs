@@ -54,6 +54,7 @@ namespace Megumin
 
         /// <summary>
         /// 递归替换宏。
+        /// TODO: 递归处理宏字典，然后在替换codestr，性能应该能更高
         /// </summary>
         /// <param name="sb"></param>
         /// <returns></returns>
@@ -81,6 +82,11 @@ namespace Megumin
             return result;
         }
 
+        /// <summary>
+        /// 代码字符串中是否含有宏
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
         public bool ContainsMacro(string code)
         {
             if (MecroList != null)
@@ -97,6 +103,34 @@ namespace Megumin
             foreach (var item in Macro)
             {
                 if (code.Contains(item.Key))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// 是否有宏的值是否包含一个宏
+        /// </summary>
+        /// <returns></returns>
+        public bool MacroValueContainsMacro()
+        {
+            if (MecroList != null)
+            {
+                foreach (var item in MecroList)
+                {
+                    if (ContainsMacro(item.Value))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            foreach (var item in Macro)
+            {
+                if (ContainsMacro(item.Value))
                 {
                     return true;
                 }
