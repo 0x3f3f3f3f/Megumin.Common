@@ -102,6 +102,7 @@ namespace UnityEditor.Megumin
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            //Toggle放在后面，可以保证Lable对齐
             var togglePosition = position;
             togglePosition.x += togglePosition.width - 14;
             togglePosition.width = 16;
