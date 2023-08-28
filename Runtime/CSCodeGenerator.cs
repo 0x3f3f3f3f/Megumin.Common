@@ -737,12 +737,34 @@ namespace Megumin
         /// <returns></returns>
         public static string ToIdentifier(this StringBuilder sb)
         {
+            //第一个字符如果是数字，在前面插入下划线
+            if (char.IsDigit(sb[0]))
+            {
+                sb.Insert(0, '_');
+            }
+
             sb.Replace("[]", "Array");
             sb.Replace('&', '_');
             sb.Replace('.', '_');
             sb.Replace('`', '_');
             sb.Replace(' ', '_');
             sb.Replace('-', '_');
+
+            //将其他非法字符替换为下划线。
+            var len = sb.Length;
+            for (int i = 0; i < len; i++)
+            {
+                var ch = sb[i];
+                if (char.IsLetterOrDigit(ch) || ch == '_')
+                {
+                    continue;
+                }
+                else
+                {
+                    sb.Replace(ch, '_', i, 1);
+                }
+            }
+
             return sb.ToString();
         }
 
