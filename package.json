@@ -6,9 +6,9 @@
   "unityRelease": "23f1",
   "description": "Wizard Fast Created.",
   "category": "Megumin",
-  "documentationUrl": "https://example.com/",
-  "changelogUrl": "https://example.com/changelog.html",
-  "licensesUrl": "https://example.com/licensing.html",
+  "documentationUrl": "https://github.com/0x3f3f3f3f/Megumin.Common",
+  "changelogUrl": "",
+  "licensesUrl": "https://github.com/0x3f3f3f3f/Megumin.Common",
   "hideInEditor": false,
   "keywords": [
     "PackageWizard",
