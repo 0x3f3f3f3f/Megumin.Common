@@ -15,7 +15,7 @@ namespace Megumin
         //常用宏
         public const string Namespace = "$(Namespace)";
         public const string ClassName = "$(ClassName)";
-        
+
         public const string CodeGenericBy = "$(CodeGenericBy)";
         public const string SourceFilePath = "$(CodeGenericSourceFilePath)";
         public const string SourceFileVersion = "$(CodeGenericSourceFileVersion)";
@@ -170,8 +170,12 @@ namespace Megumin
             stringBuilder.Append(NewLine);
             stringBuilder.Append($"///CodeGenerator: {this.GetType().FullName}.  Version: {Version}");
             stringBuilder.Append(NewLine);
-            stringBuilder.Append($"///CodeGenericBy: {CodeGenericBy}");
-            stringBuilder.Append(NewLine);
+
+            if (ContainsMacro(CodeGenericBy))
+            {
+                stringBuilder.Append($"///CodeGenericBy: {CodeGenericBy}");
+                stringBuilder.Append(NewLine);
+            }
 
             if (ContainsMacro(SourceFilePath))
             {
@@ -207,7 +211,7 @@ namespace Megumin
         {
 #if UNITY_EDITOR
 
-            if (!Macro.ContainsKey(ClassName))
+            if (!ContainsMacro(ClassName))
             {
                 Macro[ClassName] = near.name;
             }
@@ -219,8 +223,15 @@ namespace Megumin
 
             var finfo = new FileInfo(gp);
 
-            Macro[CodeGenericBy] = near.GetType().Name;
-            Macro[SourceFilePath] = path;
+            if (!ContainsMacro(CodeGenericBy))
+            {
+                Macro[CodeGenericBy] = near.GetType().Name;
+            }
+
+            if (!ContainsMacro(SourceFilePath))
+            {
+                Macro[SourceFilePath] = path;
+            }
 
             string fileName = $"{near.name}_GenericCode.cs";
             if (!string.IsNullOrEmpty(replaceFileName))
@@ -258,7 +269,7 @@ namespace Megumin
     /// </summary>
     public class CSCodeGenerator : CodeGenerator
     {
-        public override Version Version { get; } = new Version(1, 0, 1);
+        public override Version Version { get; } = new Version(1, 0, 2);
 
         public static string GetIndentStr(int level = 1)
         {

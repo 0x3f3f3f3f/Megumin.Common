@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-NN
 
+## [1.0.2] - 2023-08-30
+### Fixed  
+- CodeGenerator 添加宏前判断宏是否存在
+
 ## [1.0.1] - 2023-08-28
 ### Added 
 - CodeGenerator 生成的代码增加版本注释
