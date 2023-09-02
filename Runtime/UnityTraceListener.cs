@@ -5,6 +5,11 @@ using Debug = UnityEngine.Debug;
 
 namespace Megumin
 {
+    public interface ITraceable 
+    {
+        TraceListener TraceListener { get; set; }
+    }
+
     public class UnityTraceListener : TraceListener
     {
         [HideInCallstack]
