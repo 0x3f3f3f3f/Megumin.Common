@@ -5,7 +5,7 @@ using Debug = UnityEngine.Debug;
 
 namespace Megumin
 {
-    public interface ITraceable 
+    public interface ITraceable
     {
         TraceListener TraceListener { get; set; }
     }
