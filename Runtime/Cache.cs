@@ -82,6 +82,18 @@ namespace Megumin
         /// <param name="option"></param>
         public abstract void UpdateCache(in K key, V value, bool forceReCache, object option = null);
         public abstract bool ClearCache();
+
+        /// <summary>
+        /// 可能在初始化时，需要通过某种方式加载缓存，例如磁盘文件
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// 不存在SaveCache方法，通常在UpdateCache中实现。
+        /// </remarks>
+        public virtual bool LoadCache()
+        {
+            return true;
+        }
     }
 
     public abstract class DictionaryCache<K, V> : Cache<K, V>
