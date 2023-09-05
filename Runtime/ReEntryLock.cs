@@ -7,6 +7,10 @@ using UnityEngine;
 namespace Megumin
 {
     /// <summary>
+    /// 仅保证一个异步任务执行期间在次被调用，返回相同的任务，不多次调用。
+    /// 任务完成后，可以再次被调用。
+    /// 
+    /// 
     /// 现在当同步完成时，后调用的比先调用的先得到结果，AB的回调顺序是反的。
     /// </summary>
     /// <typeparam name="K"></typeparam>
@@ -36,7 +40,7 @@ namespace Megumin
         public bool CombineRecacheOnCalculate = true;
         Dictionary<K, TaskCompletionSource<V>> locker = new Dictionary<K, TaskCompletionSource<V>>();
 
-        public ValueTask<V> SafeCall(K key, bool forceReCache = false, object option = null, Func<ValueTask<V>> Cal = null)
+        public ValueTask<V> SafeCall(K key, Func<ValueTask<V>> Cal = null)
         {
             ///完成任务。
             async void ComplateSource(K key, TaskCompletionSource<V> source)
@@ -69,5 +73,57 @@ namespace Megumin
             }
         }
 
+
+        Dictionary<K,ValueTask<V>> already = new Dictionary<K, ValueTask<V>>();
+        public ValueTask<V> SafeCall2(K key, Func<ValueTask<V>> Cal = null)
+        {
+            if (already.TryGetValue(key,out var task))
+            {
+                return task;
+            }
+            else
+            {
+                task = Cal.Invoke();
+                RemoveKey(key, task);
+                return task;    
+            }
+
+            async void RemoveKey(K key, ValueTask<V> task)
+            {
+                //Task.Run( SetResult );
+                await task.ConfigureAwait(false);
+                already.Remove(key);
+            }
+        }
+
+        //Cal 三种情况，
+        //同步函数
+        //异步函数同步完成
+        //异步函数挂起
+
+
+        //Cal函数执行期间，第二次调用来自哪个线程
+        //与第一次调用相同线程，
+        //与第一次调用不同线程，
+
+        //组合有6种情况，有些情况不存在，有些情况不需要保证callback顺序。
+        //同步函数           相同线程   不存在
+        //异步函数同步完成   相同线程   不存在
+        //异步函数挂起       相同线程   需要保证callback顺序
+        //同步函数           不同线程   不保证顺序
+        //异步函数同步完成   不同线程   不保证顺序
+        //异步函数挂起       不同线程   需要保证callback顺序
+
+
+        //Cal 三种情况，可以总结为
+        //第二次调用发生在  Cal同步执行时，还是 函数挂起时。
+        //同步执行时，肯定时多线程，挂起时可能时多线程，也可能是同一个线程。
+        //同步执行时，需要创建一个source，通过source创建task返回。
+        //函数一旦挂起，证明Cal的结果Task可以存在，直接返回即可。
+
+
+        //Cal结果的Task 缓存 和新创建的Source缓存， 有Task返回task，无task 返回通过Source创建的task。
+        //使用source的 肯定都是多线程的，不需要保证callback执行顺序，
+        //使用task.run 执行SetResult，保证不插入第二次的callback到第一次的callback执行前
     }
 }
