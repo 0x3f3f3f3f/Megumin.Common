@@ -4,6 +4,177 @@
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="140" width="250" height="730" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="" style="html=1;verticalAlign=bottom;endArrow=open;fillColor=#a20025;strokeColor=#ff0000;endSize=8;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="600" y="140" as="sourcePoint"/>
+                        <mxPoint x="310" y="140" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="39" value="第一次WrapCall" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="3">
+                    <mxGeometry x="0.0839" y="1" relative="1" as="geometry">
+                        <mxPoint x="-42" y="-1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="4" value="" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fillColor=#a20025;strokeColor=#B80000;" edge="1" source="14" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="600" y="465" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="41" value="异步挂起" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="4">
+                    <mxGeometry x="0.0816" y="-2" relative="1" as="geometry">
+                        <mxPoint x="-66" y="-2" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5" value="同步执行" style="html=1;points=[];perimeter=orthogonalPerimeter;" vertex="1" parent="1">
+                    <mxGeometry x="85" y="270" width="200" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="&lt;span style=&quot;&quot;&gt;ReEntryLock.WrapExecute&lt;/span&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="160" width="170" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="异步挂起" style="html=1;points=[];perimeter=orthogonalPerimeter;" vertex="1" parent="1">
+                    <mxGeometry x="85" y="500" width="200" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="26" style="edgeStyle=none;html=1;exitX=0.996;exitY=0.56;exitDx=0;exitDy=0;strokeColor=#6A00FF;exitPerimeter=0;dashed=1;" edge="1" parent="1" source="5">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="690" y="360" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="28" value="异步挂起" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="26">
+                    <mxGeometry x="0.0779" relative="1" as="geometry">
+                        <mxPoint x="-43" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="27" style="edgeStyle=none;html=1;strokeColor=#6A00FF;" edge="1" parent="1" source="13">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="380" y="360" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="380" y="230"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="13" value="创建并缓存&lt;br&gt;&amp;nbsp;task source" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="105" y="210" width="160" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" style="edgeStyle=none;html=1;strokeColor=#2D7600;exitX=1;exitY=1;exitDx=0;exitDy=0;fillColor=#60a917;" edge="1" parent="1" source="14">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="480" y="560" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="480" y="480"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="14" value="缓存 task&amp;nbsp;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="105" y="450" width="160" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" value="task 完成&lt;br&gt;删除task source&lt;br&gt;删除task" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="105" y="680" width="95" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="17" value="第一次调用" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+                    <mxGeometry x="540" y="10" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" source="17" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="600" y="1042" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="19" value="" style="html=1;verticalAlign=bottom;endArrow=open;endSize=8;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fillColor=#a20025;strokeColor=#ff0000;" edge="1" parent="1" source="15">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="600" y="750" as="targetPoint"/>
+                        <mxPoint x="275" y="475" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="32" value="异步回调" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="19">
+                    <mxGeometry x="0.1426" relative="1" as="geometry">
+                        <mxPoint x="-44" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="20" value="第二次调用" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#ffffff;fillColor=#6A00FF;strokeColor=#3700CC;" vertex="1" parent="1">
+                    <mxGeometry x="630" y="69" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#6A00FF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fillColor=#6a00ff;" edge="1" source="20" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="690" y="1101" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="33" value="多线程&lt;br&gt;不需要保证回调顺序" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="21">
+                    <mxGeometry x="-0.9288" y="-1" relative="1" as="geometry">
+                        <mxPoint x="1" y="536" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="22" value="" style="html=1;verticalAlign=bottom;endArrow=open;fillColor=#6a00ff;strokeColor=#6A00FF;endSize=8;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="690" y="300" as="sourcePoint"/>
+                        <mxPoint x="310" y="300" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="40" value="第二次WrapCall" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="22">
+                    <mxGeometry x="-0.1202" relative="1" as="geometry">
+                        <mxPoint x="-42" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="30" style="edgeStyle=none;html=1;strokeColor=#6A00FF;" edge="1" parent="1" source="29">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="690" y="705" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="31" value="异步回调" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="30">
+                    <mxGeometry x="0.0593" y="-1" relative="1" as="geometry">
+                        <mxPoint x="-39" y="-1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="29" value="Task.Run 完成task source&lt;br&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="205" y="680" width="80" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="36" style="edgeStyle=none;html=1;strokeColor=#2D7600;fillColor=#60a917;" edge="1" parent="1" source="34">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="820" y="1102.4999999999998" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="49" value="多线程&lt;br&gt;保证回调顺序" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="36">
+                    <mxGeometry x="-0.2267" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="34" value="第三次调用" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#ffffff;fillColor=#008a00;strokeColor=#005700;" vertex="1" parent="1">
+                    <mxGeometry x="760" y="450" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="37" value="" style="html=1;verticalAlign=bottom;endArrow=open;fillColor=#60a917;strokeColor=#2D7600;endSize=8;" edge="1" parent="1" target="2">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="820" y="520" as="sourcePoint"/>
+                        <mxPoint x="330" y="570" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="42" value="第三次WrapCall" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="37">
+                    <mxGeometry x="-0.2856" y="2" relative="1" as="geometry">
+                        <mxPoint x="-77" y="-2" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="43" value="" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endSize=8;fillColor=#60a917;strokeColor=#2D7600;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="820" y="560" as="targetPoint"/>
+                        <mxPoint x="290" y="560" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="44" value="异步挂起" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="43">
+                    <mxGeometry x="0.0816" y="-2" relative="1" as="geometry">
+                        <mxPoint x="-37" y="-2" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="46" value="" style="html=1;verticalAlign=bottom;endArrow=open;endSize=8;exitX=1;exitY=0.571;exitDx=0;exitDy=0;fillColor=#60a917;strokeColor=#2D7600;exitPerimeter=0;" edge="1" parent="1" source="15">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="820" y="760" as="targetPoint"/>
+                        <mxPoint x="210" y="760" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="47" value="异步回调" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="46">
+                    <mxGeometry x="0.1426" relative="1" as="geometry">
+                        <mxPoint x="-14" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
             </root>
         </mxGraphModel>
     </diagram>
