@@ -1,0 +1,215 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System.Threading.Tasks;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+
+namespace Megumin.AI
+{
+    public class TypeGuidCache : Cache<Type, string>
+    {
+        public override bool TryGetCache(in Type key, out string value, object option = null)
+        {
+            value = null;
+            return false;
+        }
+
+        public override ValueTask<string> Calculate(Type key, bool forceReCache = false, object option = null)
+        {
+            return new ValueTask<string>(result: null);
+        }
+
+        public override void UpdateCache(in Type key, string value, bool forceReCache = false, object option = null)
+        {
+
+        }
+
+        public override bool ClearCache()
+        {
+            return true;
+        }
+    }
+
+#if UNITY_EDITOR
+
+    public class MonoScriptCodeCache : DictionaryCache<MonoScript, string>
+    {
+        public override ValueTask<string> Calculate(MonoScript key, bool forceReCache, object option = null)
+        {
+            //Debug.LogError($"{Time.frameCount} GetMonoScript4   {key.name}");
+            return new ValueTask<string>(result: key.text);
+        }
+    }
+
+    public class TypeMonoScriptPair
+    {
+        public Type Type { get; set; }
+        public string GUID { get; set; }
+        public string Code { get; set; }
+        public MonoScript MonoScript { get; set; }
+    }
+
+    public class TypeScriptCache : DictionaryCache<Type, TypeMonoScriptPair>
+    {
+        public static bool Valid(string code, Type type)
+        {
+            if (type == null)
+            {
+                return false;
+            }
+
+            if (code.Contains($"class {type.Name}"))
+            {
+                if (string.IsNullOrEmpty(type.Namespace))
+                {
+                    return true;
+                }
+                else
+                {
+                    if (code.Contains(type.Namespace))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public override bool TryGetCache(in Type key, out TypeMonoScriptPair value, object option = null)
+        {
+            if (CacheDic.TryGetValue(key, out value))
+            {
+                return Valid(value.Code, key);
+            }
+            return false;
+        }
+
+        public override async ValueTask<TypeMonoScriptPair> Calculate(Type key, bool forceReCache, object option = null)
+        {
+            //Debug.LogError($"{Time.frameCount} GetMonoScript2   {key.Name}");
+            TypeMonoScriptPair result = new();
+            MonoScript script = null;
+
+            result.Type = key;
+
+            //通过GUID缓存找到MonoScript
+            var guid = await MonoScriptExtension.TypeGuidCache.Get(key);
+            if (!string.IsNullOrEmpty(guid))
+            {
+                var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                script = AssetDatabase.LoadAssetAtPath<MonoScript>(assetPath);
+
+                if (script)
+                {
+                    result.GUID = guid;
+                    result.Code = await MonoScriptExtension.MonoScriptCodeCache.Get(script);
+                    result.MonoScript = script;
+                    //异步验证脚本是否真的包含指定类型
+                    var success = await Task.Run(() => { return Valid(result.Code, key); });
+                    if (success)
+                    {
+                        return result;
+                    }
+                }
+            }
+
+
+            //暴力遍历所有MonoScript，找到含有Type的脚本。
+            //Debug.LogError($"{Time.frameCount} GetMonoScript3   {key.Name}");
+
+            var list = MonoScriptExtension.GetAllMonoScripts();
+            foreach (var item in list)
+            {
+                var code = await MonoScriptExtension.MonoScriptCodeCache.Get(item);
+                var success = Valid(code, key); // await Task.Run(() => { return Valid(code, key); });
+                if (success)
+                {
+                    script = item;
+                    break;
+                }
+            }
+
+            if (script)
+            {
+                result.Code = await MonoScriptExtension.MonoScriptCodeCache.Get(script);
+                result.MonoScript = script;
+                var path = AssetDatabase.GetAssetPath(script);
+                var newGUID = AssetDatabase.AssetPathToGUID(path);
+                result.GUID = newGUID;
+                MonoScriptExtension.TypeGuidCache.UpdateCache(key, newGUID);
+                return result;
+            }
+            else
+            {
+                Debug.LogError("No match script");
+                return null;
+            }
+        }
+    }
+
+
+    public static class MonoScriptExtension
+    {
+        private static List<MonoScript> AllMonoScript { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="force"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 只能主线程调用
+        /// </remarks>
+        public static List<MonoScript> GetAllMonoScripts(bool force = false)
+        {
+            if (AllMonoScript == null || force)
+            {
+                AllMonoScript = new();
+
+                Debug.LogError($"{Time.frameCount} AssetDatabase.FindAssets AllMonoScripts");
+
+                var scriptGUIDs = AssetDatabase.FindAssets($"t:script");
+
+                foreach (var scriptGUID in scriptGUIDs)
+                {
+                    var assetPath = AssetDatabase.GUIDToAssetPath(scriptGUID);
+                    var script = AssetDatabase.LoadAssetAtPath<MonoScript>(assetPath);
+                    AllMonoScript.Add(script);
+                }
+            }
+
+            return AllMonoScript;
+        }
+
+        public static TypeGuidCache TypeGuidCache { get; } = new();
+        public static MonoScriptCodeCache MonoScriptCodeCache { get; } = new();
+        public static TypeScriptCache TypeScriptCache { get; } = new();
+
+        /// <summary>
+        /// 通过类型获取定义此类型的MonoScript对象
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="force"></param>
+        /// <returns></returns>
+        public static async ValueTask<MonoScript> GetMonoScript(this Type type, bool force = false)
+        {
+            if (type is null)
+            {
+                return null;
+            }
+
+            //Debug.LogError($"{Time.frameCount} GetMonoScript1   {type.Name}");
+            var result = await TypeScriptCache.Get(type, force);
+            return result.MonoScript;
+        }
+    }
+
+#endif
+
+}
+
+
+
