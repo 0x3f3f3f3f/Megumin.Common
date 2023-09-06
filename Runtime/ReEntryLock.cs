@@ -33,17 +33,19 @@ namespace Megumin
     public interface IReEntryLock<K, V>
     {
         /// <summary>
-        /// 是否开启
-        /// </summary>
-        bool Enabled { get; set; }
-
-        /// <summary>
-        /// 防止重入调用
+        /// 防止重入调用。
+        /// <para/> 在function执行期间，相同的key再次调用，不会执行function。
+        /// 而是会返回第一次执行function的结果。
         /// </summary>
         /// <param name="key">有Lambda闭包，K不能带in标记</param>
         /// <param name="function"></param>
         /// <returns></returns>
-        V WrapCall(K key, Func<V> function);
+        /// <param name="enable">是否开启</param>
+        V WrapCall(K key, Func<V> function, bool enable = true);
+
+        //void WrapCall(K key, Action action, bool enable = true);
+        //void WrapCall(K key, Func<Task> function, bool enable = true);
+        //void WrapCall(K key, Func<ValueTask> function, bool enable = true);
     }
 
     //function 三种情况，
@@ -76,23 +78,56 @@ namespace Megumin
     //使用source返回的 肯定都是多线程的，不需要保证callback执行顺序。
     //使用Task.Run执行source.TrySetResult，保证不插入后续调用的callback到第一次的callback执行前。
 
-    public class ReEntryLockBase<K, V>
+    ///<inheritdoc cref="IReEntryLock{K, V}"/>
+    public class ReEntryLockSync<K> //: IReEntryLock<K, V>
     {
-        public bool Enabled { get; set; } = true;
-        protected Dictionary<K, TaskCompletionSource<V>> IsRunningSource { get; } = new();
+        protected Dictionary<K, TaskCompletionSource<int>> IsRunningSource { get; } = new();
+        public void WrapCall(K key, Action action, bool enable = true)
+        {
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            if (enable == false)
+            {
+                action();
+                return;
+            }
+
+            if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                var result = source.Task.Result;
+                return;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource[key] = source;
+
+                action();
+                Task.Run(() =>
+                {
+                    source.TrySetResult(1);
+                    IsRunningSource.Remove(key);
+                });
+                return;
+            }
+        }
     }
 
-
-    public class ReEntryLockSync<K, V> : ReEntryLockBase<K, V>, IReEntryLock<K, V>
+    ///<inheritdoc cref="IReEntryLock{K, V}"/>
+    public class ReEntryLockSync<K, V> : IReEntryLock<K, V>
     {
-        public V WrapCall(K key, Func<V> function)
+        protected Dictionary<K, TaskCompletionSource<V>> IsRunningSource { get; } = new();
+        public V WrapCall(K key, Func<V> function, bool enable = true)
         {
             if (function is null)
             {
                 throw new ArgumentNullException(nameof(function));
             }
 
-            if (Enabled == false)
+            if (enable == false)
             {
                 return function();
             }
@@ -117,17 +152,68 @@ namespace Megumin
         }
     }
 
-    public class ReEntryLockTask<K, V> : ReEntryLockBase<K, V>, IReEntryLock<K, Task<V>>
+    public class ReEntryLockTask<K> : IReEntryLock<K, Task>
     {
-        Dictionary<K, Task<V>> IsRunningTask = new();
-        public Task<V> WrapCall(K key, Func<Task<V>> function)
+        protected Dictionary<K, TaskCompletionSource<int>> IsRunningSource { get; } = new();
+        Dictionary<K, Task> IsRunningTask = new();
+        public Task WrapCall(K key, Func<Task> function, bool enable = true)
         {
             if (function is null)
             {
                 throw new ArgumentNullException(nameof(function));
             }
 
-            if (Enabled == false)
+            if (enable == false)
+            {
+                return function();
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource[key] = source;
+
+                var resultTask = function();
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.Remove(key);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+    }
+
+    ///<inheritdoc cref="IReEntryLock{K, V}"/>
+    public class ReEntryLockTask<K, V> : IReEntryLock<K, Task<V>>
+    {
+        protected Dictionary<K, TaskCompletionSource<V>> IsRunningSource { get; } = new();
+        Dictionary<K, Task<V>> IsRunningTask = new();
+        public Task<V> WrapCall(K key, Func<Task<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
             {
                 return function();
             }
@@ -165,18 +251,69 @@ namespace Megumin
         }
     }
 
-
-    public class ReEntryLockValueTask<K, V> : ReEntryLockBase<K, V>, IReEntryLock<K, ValueTask<V>>
+    ///<inheritdoc cref="IReEntryLock{K, V}"/>
+    public class ReEntryLockValueTask<K> : IReEntryLock<K, ValueTask>
     {
-        Dictionary<K, ValueTask<V>> IsRunningTask = new();
-        public ValueTask<V> WrapCall(K key, Func<ValueTask<V>> function)
+        protected Dictionary<K, TaskCompletionSource<int>> IsRunningSource { get; } = new();
+        Dictionary<K, ValueTask> IsRunningTask = new();
+        public ValueTask WrapCall(K key, Func<ValueTask> function, bool enable = true)
         {
             if (function is null)
             {
                 throw new ArgumentNullException(nameof(function));
             }
 
-            if (Enabled == false)
+            if (enable == false)
+            {
+                return function();
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return new ValueTask(source.Task);
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource[key] = source;
+
+                var resultTask = function();
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.Remove(key);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+    }
+
+    ///<inheritdoc cref="IReEntryLock{K, V}"/>
+    public class ReEntryLockValueTask<K, V> : IReEntryLock<K, ValueTask<V>>
+    {
+        protected Dictionary<K, TaskCompletionSource<V>> IsRunningSource { get; } = new();
+        Dictionary<K, ValueTask<V>> IsRunningTask = new();
+        public ValueTask<V> WrapCall(K key, Func<ValueTask<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
             {
                 return function();
             }
