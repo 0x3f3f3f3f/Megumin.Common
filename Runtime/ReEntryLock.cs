@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -81,7 +82,7 @@ namespace Megumin
     ///<inheritdoc cref="IReEntryLock{K, V}"/>
     public class ReEntryLockSync<K> //: IReEntryLock<K, V>
     {
-        protected Dictionary<K, TaskCompletionSource<int>> IsRunningSource { get; } = new();
+        protected ConcurrentDictionary<K, TaskCompletionSource<int>> IsRunningSource { get; } = new();
         public void WrapCall(K key, Action action, bool enable = true)
         {
             if (action is null)
@@ -103,13 +104,13 @@ namespace Megumin
             else
             {
                 source = new TaskCompletionSource<int>();
-                IsRunningSource[key] = source;
+                IsRunningSource.TryAdd(key, source);
 
                 action();
                 Task.Run(() =>
                 {
                     source.TrySetResult(1);
-                    IsRunningSource.Remove(key);
+                    IsRunningSource.TryRemove(key, out var _);
                 });
                 return;
             }
@@ -119,7 +120,7 @@ namespace Megumin
     ///<inheritdoc cref="IReEntryLock{K, V}"/>
     public class ReEntryLockSync<K, V> : IReEntryLock<K, V>
     {
-        protected Dictionary<K, TaskCompletionSource<V>> IsRunningSource { get; } = new();
+        protected ConcurrentDictionary<K, TaskCompletionSource<V>> IsRunningSource { get; } = new();
         public V WrapCall(K key, Func<V> function, bool enable = true)
         {
             if (function is null)
@@ -139,13 +140,13 @@ namespace Megumin
             else
             {
                 source = new TaskCompletionSource<V>();
-                IsRunningSource[key] = source;
+                IsRunningSource.TryAdd(key, source);
 
                 var result = function();
                 Task.Run(() =>
                 {
                     source.TrySetResult(result);
-                    IsRunningSource.Remove(key);
+                    IsRunningSource.TryRemove(key, out var _);
                 });
                 return result;
             }
@@ -154,7 +155,7 @@ namespace Megumin
 
     public class ReEntryLockTask<K> : IReEntryLock<K, Task>
     {
-        protected Dictionary<K, TaskCompletionSource<int>> IsRunningSource { get; } = new();
+        protected ConcurrentDictionary<K, TaskCompletionSource<int>> IsRunningSource { get; } = new();
         Dictionary<K, Task> IsRunningTask = new();
         public Task WrapCall(K key, Func<Task> function, bool enable = true)
         {
@@ -179,7 +180,7 @@ namespace Megumin
             else
             {
                 source = new TaskCompletionSource<int>();
-                IsRunningSource[key] = source;
+                IsRunningSource.TryAdd(key, source);
 
                 var resultTask = function();
 
@@ -192,7 +193,7 @@ namespace Megumin
                 {
                     await resultTask;
                     source.TrySetResult(1);
-                    IsRunningSource.Remove(key);
+                    IsRunningSource.TryRemove(key, out var _);
                     IsRunningTask.Remove(key);
                 });
 
@@ -204,7 +205,7 @@ namespace Megumin
     ///<inheritdoc cref="IReEntryLock{K, V}"/>
     public class ReEntryLockTask<K, V> : IReEntryLock<K, Task<V>>
     {
-        protected Dictionary<K, TaskCompletionSource<V>> IsRunningSource { get; } = new();
+        protected ConcurrentDictionary<K, TaskCompletionSource<V>> IsRunningSource { get; } = new();
         Dictionary<K, Task<V>> IsRunningTask = new();
         public Task<V> WrapCall(K key, Func<Task<V>> function, bool enable = true)
         {
@@ -229,7 +230,7 @@ namespace Megumin
             else
             {
                 source = new TaskCompletionSource<V>();
-                IsRunningSource[key] = source;
+                IsRunningSource.TryAdd(key, source);
 
                 var resultTask = function();
 
@@ -242,7 +243,7 @@ namespace Megumin
                 {
                     var result = await resultTask;
                     source.TrySetResult(result);
-                    IsRunningSource.Remove(key);
+                    IsRunningSource.TryRemove(key, out var _);
                     IsRunningTask.Remove(key);
                 });
 
@@ -254,7 +255,7 @@ namespace Megumin
     ///<inheritdoc cref="IReEntryLock{K, V}"/>
     public class ReEntryLockValueTask<K> : IReEntryLock<K, ValueTask>
     {
-        protected Dictionary<K, TaskCompletionSource<int>> IsRunningSource { get; } = new();
+        protected ConcurrentDictionary<K, TaskCompletionSource<int>> IsRunningSource { get; } = new();
         Dictionary<K, ValueTask> IsRunningTask = new();
         public ValueTask WrapCall(K key, Func<ValueTask> function, bool enable = true)
         {
@@ -279,7 +280,7 @@ namespace Megumin
             else
             {
                 source = new TaskCompletionSource<int>();
-                IsRunningSource[key] = source;
+                IsRunningSource.TryAdd(key, source);
 
                 var resultTask = function();
 
@@ -292,7 +293,7 @@ namespace Megumin
                 {
                     await resultTask;
                     source.TrySetResult(1);
-                    IsRunningSource.Remove(key);
+                    IsRunningSource.TryRemove(key, out var _);
                     IsRunningTask.Remove(key);
                 });
 
@@ -304,7 +305,7 @@ namespace Megumin
     ///<inheritdoc cref="IReEntryLock{K, V}"/>
     public class ReEntryLockValueTask<K, V> : IReEntryLock<K, ValueTask<V>>
     {
-        protected Dictionary<K, TaskCompletionSource<V>> IsRunningSource { get; } = new();
+        protected ConcurrentDictionary<K, TaskCompletionSource<V>> IsRunningSource { get; } = new();
         Dictionary<K, ValueTask<V>> IsRunningTask = new();
         public ValueTask<V> WrapCall(K key, Func<ValueTask<V>> function, bool enable = true)
         {
@@ -329,7 +330,7 @@ namespace Megumin
             else
             {
                 source = new TaskCompletionSource<V>();
-                IsRunningSource[key] = source;
+                IsRunningSource.TryAdd(key, source);
 
                 var resultTask = function();
 
@@ -342,7 +343,7 @@ namespace Megumin
                 {
                     var result = await resultTask;
                     source.TrySetResult(result);
-                    IsRunningSource.Remove(key);
+                    IsRunningSource.TryRemove(key, out var _);
                     IsRunningTask.Remove(key);
                 });
 
