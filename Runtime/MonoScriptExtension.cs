@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
+using UnityEngine.Profiling;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -167,9 +168,10 @@ namespace Megumin.AI
         {
             if (AllMonoScript == null || force)
             {
-                AllMonoScript = new();
+                Profiler.BeginSample("CacheAllMonoScripts");
 
-                Debug.LogError($"{Time.frameCount} AssetDatabase.FindAssets AllMonoScripts");
+                AllMonoScript = new();
+                Debug.LogError($"FrameCount:{Time.frameCount}    AssetDatabase.FindAssets AllMonoScripts");
 
                 var scriptGUIDs = AssetDatabase.FindAssets($"t:script");
 
@@ -179,6 +181,8 @@ namespace Megumin.AI
                     var script = AssetDatabase.LoadAssetAtPath<MonoScript>(assetPath);
                     AllMonoScript.Add(script);
                 }
+
+                Profiler.EndSample();
             }
 
             return AllMonoScript;
