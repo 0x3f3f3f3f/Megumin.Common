@@ -177,7 +177,7 @@ namespace Megumin.AI
                 Profiler.BeginSample("CacheAllMonoScripts");
 
                 AllMonoScript = new();
-                Debug.LogError($"FrameCount:{Time.frameCount}    AssetDatabase.FindAssets AllMonoScripts");
+                //Debug.LogError($"FrameCount:{Time.frameCount}    AssetDatabase.FindAssets AllMonoScripts");
 
                 var scriptGUIDs = AssetDatabase.FindAssets($"t:script");
 
