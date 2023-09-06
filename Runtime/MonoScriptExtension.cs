@@ -209,6 +209,24 @@ namespace Megumin.AI
             var result = await TypeScriptCache.Get(type, force);
             return result.MonoScript;
         }
+
+        public static async void OpenScript(this Type type)
+        {
+            var obj = await GetMonoScript(type);
+            if (obj)
+            {
+                AssetDatabase.OpenAsset(obj, 0, 0);
+            }
+        }
+
+        public static async void SelectScript(this Type type)
+        {
+            var obj = await GetMonoScript(type);
+            if (obj)
+            {
+                Selection.activeObject = obj;
+            }
+        }
     }
 
 #endif
