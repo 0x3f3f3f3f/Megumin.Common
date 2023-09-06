@@ -10,7 +10,7 @@ using UnityEditor;
 #endif
 
 
-namespace Megumin.AI
+namespace Megumin
 {
     public class TypeGuidCache : Cache<Type, string>
     {
@@ -110,7 +110,7 @@ namespace Megumin.AI
             result.Type = key;
 
             //通过GUID缓存找到MonoScript
-            var guid = await MonoScriptExtension.TypeGuidCache.Get(key);
+            var guid = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.TypeGuidCache.Get(key);
             if (!string.IsNullOrEmpty(guid))
             {
                 var assetPath = AssetDatabase.GUIDToAssetPath(guid);
@@ -119,7 +119,7 @@ namespace Megumin.AI
                 if (script)
                 {
                     result.GUID = guid;
-                    result.Code = await MonoScriptExtension.MonoScriptCodeCache.Get(script);
+                    result.Code = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.MonoScriptCodeCache.Get(script);
                     result.MonoScript = script;
                     //异步验证脚本是否真的包含指定类型
                     var success = await Task.Run(() => { return Valid(result.Code, key); });
@@ -134,10 +134,10 @@ namespace Megumin.AI
             //暴力遍历所有MonoScript，找到含有Type的脚本。
             //Debug.LogError($"{Time.frameCount} GetMonoScript3   {key.Name}");
 
-            var list = MonoScriptExtension.GetAllMonoScripts();
+            var list = MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.GetAllMonoScripts();
             foreach (var item in list)
             {
-                var code = await MonoScriptExtension.MonoScriptCodeCache.Get(item);
+                var code = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.MonoScriptCodeCache.Get(item);
                 var success = Valid(code, key); // await Task.Run(() => { return Valid(code, key); });
                 if (success)
                 {
@@ -148,12 +148,12 @@ namespace Megumin.AI
 
             if (script)
             {
-                result.Code = await MonoScriptExtension.MonoScriptCodeCache.Get(script);
+                result.Code = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.MonoScriptCodeCache.Get(script);
                 result.MonoScript = script;
                 var path = AssetDatabase.GetAssetPath(script);
                 var newGUID = AssetDatabase.AssetPathToGUID(path);
                 result.GUID = newGUID;
-                MonoScriptExtension.TypeGuidCache.UpdateCache(key, newGUID);
+                MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.TypeGuidCache.UpdateCache(key, newGUID);
                 return result;
             }
             else
@@ -166,7 +166,7 @@ namespace Megumin.AI
 
 #endif
 
-    public static class MonoScriptExtension
+    public static class MonoScriptExtension_5723CD2B78954C329E0643673F68FE22
     {
         public static TypeGuidCache TypeGuidCache { get; } = new();
 
