@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using UnityEngine;
 
 namespace Megumin
 {
@@ -19,6 +17,9 @@ namespace Megumin
     /// </remarks>
     public abstract class Cache<K, V>
     {
+        public bool EnabledReEntryLock { get; set; } = true;
+        protected ReEntryLockValueTask<K, V> ReEntryLock { get; } = new();
+
         /// <summary>
         /// 根据Key查找结果
         /// </summary>
@@ -26,7 +27,7 @@ namespace Megumin
         /// <param name="forceReCache">是否强制重新计算并更新缓存</param>
         /// <param name="option">备用参数，可能的包含缓存淘汰机制相关参数</param>
         /// <returns></returns>
-        public ValueTask<V> Get(in K key, bool forceReCache = false, object option = null)
+        public ValueTask<V> Get(K key, bool forceReCache = false, object option = null)
         {
             if (forceReCache == false && TryGetCache(in key, out var result, option))
             {
@@ -34,7 +35,17 @@ namespace Megumin
             }
             else
             {
-                return ReCache(key, forceReCache, option);
+                if (EnabledReEntryLock)
+                {
+                    return ReEntryLock.WrapCall(key, () =>
+                    {
+                        return ReCache(key, forceReCache, option);
+                    });
+                }
+                else
+                {
+                    return ReCache(key, forceReCache, option);
+                }
             }
         }
 
