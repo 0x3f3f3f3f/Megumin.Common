@@ -58,7 +58,7 @@ namespace Megumin
         /// <returns></returns>
         public virtual async ValueTask<V> ReCache(K key, bool forceReCache = false, object option = null)
         {
-            var result = await Calculate(in key, forceReCache, option);
+            var result = await Calculate(key, forceReCache, option);
             UpdateCache(in key, result, forceReCache, option);
             return result;
         }
@@ -82,7 +82,7 @@ namespace Megumin
         /// <param name="forceReCache"></param>
         /// <param name="option"></param>
         /// <returns></returns>
-        public abstract ValueTask<V> Calculate(in K key, bool forceReCache, object option = null);
+        public abstract ValueTask<V> Calculate(K key, bool forceReCache = false, object option = null);
 
         /// <summary>
         /// 更新结果到缓存中
@@ -91,7 +91,7 @@ namespace Megumin
         /// <param name="value"></param>
         /// <param name="forceReCache"></param>
         /// <param name="option"></param>
-        public abstract void UpdateCache(in K key, V value, bool forceReCache, object option = null);
+        public abstract void UpdateCache(in K key, V value, bool forceReCache = false, object option = null);
         public abstract bool ClearCache();
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Megumin
             return CacheDic.TryGetValue(key, out value);
         }
 
-        public override void UpdateCache(in K key, V value, bool forceReCache, object option = null)
+        public override void UpdateCache(in K key, V value, bool forceReCache = false, object option = null)
         {
             CacheDic[key] = value;
         }
