@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
 using UnityEngine.Profiling;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -152,9 +153,14 @@ namespace Megumin.AI
         }
     }
 
+#endif
 
     public static class MonoScriptExtension
     {
+        public static TypeGuidCache TypeGuidCache { get; } = new();
+
+#if UNITY_EDITOR
+
         private static List<MonoScript> AllMonoScript { get; set; }
         /// <summary>
         /// 
@@ -188,7 +194,6 @@ namespace Megumin.AI
             return AllMonoScript;
         }
 
-        public static TypeGuidCache TypeGuidCache { get; } = new();
         public static MonoScriptCodeCache MonoScriptCodeCache { get; } = new();
         public static TypeScriptCache TypeScriptCache { get; } = new();
 
@@ -210,26 +215,42 @@ namespace Megumin.AI
             return result.MonoScript;
         }
 
+#endif
+
+        /// <summary>
+        /// 打开类型所在的脚本
+        /// </summary>
+        /// <param name="type"></param>
         public static async void OpenScript(this Type type)
         {
+
+#if UNITY_EDITOR
             var obj = await GetMonoScript(type);
             if (obj)
             {
                 AssetDatabase.OpenAsset(obj, 0, 0);
             }
+#endif
+
         }
 
+        /// <summary>
+        /// 在unity编辑中选中类型所在的脚本
+        /// </summary>
+        /// <param name="type"></param>
         public static async void SelectScript(this Type type)
         {
+
+#if UNITY_EDITOR
             var obj = await GetMonoScript(type);
             if (obj)
             {
                 Selection.activeObject = obj;
             }
-        }
-    }
-
 #endif
+        }
+
+    }
 
 }
 
