@@ -16,8 +16,15 @@ namespace Megumin.AI
     {
         public override bool TryGetCache(in Type key, out string value, object option = null)
         {
+
+#if UNITY_EDITOR
+            value = EditorPrefs.GetString(key.FullName, null);
+            return true;
+#else
             value = null;
             return false;
+#endif
+
         }
 
         public override ValueTask<string> Calculate(Type key, bool forceReCache = false, object option = null)
@@ -27,6 +34,10 @@ namespace Megumin.AI
 
         public override void UpdateCache(in Type key, string value, bool forceReCache = false, object option = null)
         {
+
+#if UNITY_EDITOR
+            EditorPrefs.SetString(key.FullName, value);
+#endif
 
         }
 
