@@ -12,6 +12,7 @@ namespace Megumin
     /// <typeparam name="T"></typeparam>
     /// <remarks><see cref="Nullable{T}"/>无法序列化,不能写成特性.</remarks>
     [Serializable]
+    [Obsolete("use Enable instead", false)]
     public abstract class Enableable
     {
         [SerializeField]
@@ -35,6 +36,7 @@ namespace Megumin
     /// <typeparam name="T"></typeparam>
     /// <see cref="Nullable{T}"/>无法序列化,不能写成特性.
     [Serializable]
+    [Obsolete("use Enable<T> instead", false)]
     public class Enableable<T> : Enableable
     {
         [SerializeField]
@@ -77,6 +79,79 @@ namespace Megumin
         //    return default;
         //}
     }
+
+    /// <summary>
+    /// 可启用的,继承后字段值名字一定要是Value.
+    /// 解决Value不能设置特性的问题.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <remarks><see cref="Nullable{T}"/>无法序列化,不能写成特性.</remarks>
+    [Serializable]
+    public abstract class Enable
+    {
+        [SerializeField]
+        [UnityEngine.Serialization.FormerlySerializedAs("Active")]
+        public bool Enabled = true;
+
+        /// <summary>
+        /// <inheritdoc cref="Nullable{T}.HasValue"/>
+        /// </summary>
+        public virtual bool HasValue => Enabled;
+
+        public static implicit operator bool(Enable activeable)
+        {
+            return activeable?.Enabled ?? false;
+        }
+    }
+
+    /// <summary>
+    /// 可启用的
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <see cref="Nullable{T}"/>无法序列化,不能写成特性.
+    [Serializable]
+    public class Enable<T> : Enable
+    {
+        [SerializeField]
+        public T Value;
+
+        public Enable() : this(true, default)
+        {
+
+        }
+
+        public Enable(bool enabled = true, T def = default)
+        {
+            Enabled = enabled;
+            Value = def;
+        }
+
+        public static implicit operator T(Enable<T> activeable)
+        {
+            return activeable.Value;
+        }
+
+        public override bool HasValue
+        {
+            get
+            {
+                if (!Enabled)
+                {
+                    return false;
+                }
+                else
+                {
+                    return Value != null;
+                }
+            }
+        }
+
+        //public static implicit operator Nullable<T>(Enable<T> activeable)
+        //    where T:struct
+        //{
+        //    return default;
+        //}
+    }
 }
 
 #if UNITY_EDITOR
@@ -87,10 +162,12 @@ namespace UnityEditor.Megumin
     using UnityEditor;
 
 #if !DISABLE_MEGUMIN_PROPERTYDRWAER
+    [CustomPropertyDrawer(typeof(Enable), true)]
+    [CustomPropertyDrawer(typeof(Enable<>), true)]
     [CustomPropertyDrawer(typeof(Enableable), true)]
     [CustomPropertyDrawer(typeof(Enableable<>), true)]
 #endif
-    internal sealed class EnableableDrawer : PropertyDrawer
+    internal sealed class EnableDrawer : PropertyDrawer
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {

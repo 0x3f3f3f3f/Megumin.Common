@@ -8,9 +8,9 @@ namespace Megumin
     [Serializable]
     public class GameObjectFilter
     {
-        public Enableable<LayerMask> LayerMask = new(false, 0);
-        public Enableable<TagMask> TagMask = new(false, new TagMask());
-        public Enableable<List<GameObject>> Exclude = new(false, null);
+        public Enable<LayerMask> LayerMask = new(false, 0);
+        public Enable<TagMask> TagMask = new(false, new TagMask());
+        public Enable<List<GameObject>> Exclude = new(false, null);
 
         public bool Check(Component component)
         {
