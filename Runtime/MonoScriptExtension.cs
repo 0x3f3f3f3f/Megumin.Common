@@ -122,7 +122,8 @@ namespace Megumin
                     result.Code = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.MonoScriptCodeCache.Get(script);
                     result.MonoScript = script;
                     //异步验证脚本是否真的包含指定类型
-                    var success = await Task.Run(() => { return Valid(result.Code, key); });
+                    //下面可能会调用AssetDatabase.GetAssetPath，需要保证后续主线程调用。
+                    var success = Valid(result.Code, key); //await Task.Run(() => { return Valid(result.Code, key); }).ConfigureAwait(false);
                     if (success)
                     {
                         return result;
@@ -214,6 +215,9 @@ namespace Megumin
         /// <param name="type"></param>
         /// <param name="force"></param>
         /// <returns></returns>
+        /// <remarks>
+        /// 尽可能的试用await 而不是访问Result,极有可能导致死锁。
+        /// </remarks>
         public static async ValueTask<MonoScript> GetMonoScript(this Type type, bool force = false)
         {
             if (type is null)
@@ -222,7 +226,7 @@ namespace Megumin
             }
 
             //Debug.LogError($"{Time.frameCount} GetMonoScript1   {type.Name}");
-            var result = await TypeScriptCache.Get(type, force);
+            var result = await TypeScriptCache.Get(type, force).ConfigureAwait(false);
             return result.MonoScript;
         }
 
