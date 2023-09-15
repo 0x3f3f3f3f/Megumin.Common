@@ -37,10 +37,7 @@ namespace Megumin
             {
                 if (EnabledReEntryLock)
                 {
-                    return ReEntryLock.WrapCall(key, () =>
-                    {
-                        return ReCache(key, forceReCache, option);
-                    });
+                    return ReEntryLock.WrapCall(key, forceReCache, option, ReCache);
                 }
                 else
                 {
