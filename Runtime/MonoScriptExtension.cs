@@ -12,6 +12,9 @@ using UnityEditor;
 
 namespace Megumin
 {
+    /// <summary>
+    /// 类型->文件guid 的查找缓存。保存在EditorPrefs中。只能主线程访问。
+    /// </summary>
     public class TypeGuidCache : Cache<Type, string>
     {
         public override bool TryGetCache(in Type key, out string value, object option = null)
@@ -40,15 +43,13 @@ namespace Megumin
 #endif
 
         }
-
-        public override bool ClearCache()
-        {
-            return true;
-        }
     }
 
 #if UNITY_EDITOR
 
+    /// <summary>
+    /// MonoScript->text缓存，永远同步完成。只有主线程才能反序列化。缓存之后可以非主线程访问。
+    /// </summary>
     public class MonoScriptCodeCache : DictionaryCache<MonoScript, string>
     {
         public override ValueTask<string> Calculate(MonoScript key, bool forceReCache, object option = null)
@@ -66,6 +67,10 @@ namespace Megumin
         public MonoScript MonoScript { get; set; }
     }
 
+    /// <summary>
+    /// 类型->TypeMonoScriptPair缓存，用于快速通过Type找到Type所在的代码文件。
+    /// <para/> 缓存查找 -> guid缓存查找并验证 -> 全局暴论搜索代码文本
+    /// </summary>
     public class TypeScriptCache : DictionaryCache<Type, TypeMonoScriptPair>
     {
         public static bool Valid(string code, Type type)
@@ -101,6 +106,13 @@ namespace Megumin
             return false;
         }
 
+        /// <summary>
+        /// 看似是异步，其实所有步骤都是同步完成的。
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="forceReCache"></param>
+        /// <param name="option"></param>
+        /// <returns></returns>
         public override async ValueTask<TypeMonoScriptPair> Calculate(Type key, bool forceReCache, object option = null)
         {
             //Debug.LogError($"{Time.frameCount} GetMonoScript2   {key.Name}");
@@ -149,8 +161,12 @@ namespace Megumin
 
             if (script)
             {
+                //从缓存中读取代码文本
                 result.Code = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.MonoScriptCodeCache.Get(script);
+
                 result.MonoScript = script;
+
+                //更新guid到TypeGuidCache中
                 var path = AssetDatabase.GetAssetPath(script);
                 var newGUID = AssetDatabase.AssetPathToGUID(path);
                 result.GUID = newGUID;
@@ -206,6 +222,12 @@ namespace Megumin
             return AllMonoScript;
         }
 
+        /// <summary>
+        /// MonoScript->text缓存，永远同步完成。只有主线程才能反序列化。缓存之后可以非主线程访问。
+        /// </summary>
+        /// <remarks>
+        /// 不要怕缓存了所有代码字符串会占用很多内存。只是在编辑器下有效，代码文件纯文本最多也就几百mb，完全不是问题。
+        /// </remarks>
         public static MonoScriptCodeCache MonoScriptCodeCache { get; } = new();
         public static TypeScriptCache TypeScriptCache { get; } = new();
 

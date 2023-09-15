@@ -89,7 +89,15 @@ namespace Megumin
         /// <param name="forceReCache"></param>
         /// <param name="option"></param>
         public abstract void UpdateCache(in K key, V value, bool forceReCache = false, object option = null);
-        public abstract bool ClearCache();
+
+        /// <summary>
+        /// 清除缓存
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool Clear()
+        {
+            return true;
+        }
 
         /// <summary>
         /// 可能在初始化时，需要通过某种方式加载缓存，例如磁盘文件
@@ -98,7 +106,7 @@ namespace Megumin
         /// <remarks>
         /// 不存在SaveCache方法，通常在UpdateCache中实现。
         /// </remarks>
-        public virtual bool LoadCache()
+        public virtual bool Load()
         {
             return true;
         }
@@ -118,7 +126,7 @@ namespace Megumin
             CacheDic[key] = value;
         }
 
-        public override bool ClearCache()
+        public override bool Clear()
         {
             CacheDic.Clear();
             return true;
