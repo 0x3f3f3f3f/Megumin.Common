@@ -15,6 +15,7 @@ namespace Megumin
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
     /// <remarks>
+    /// <para/> 实现中WrapCall为同步调用，没有使用await，方法不会在WrapCall中挂起。也就是说WrapCall不会导致线程切换。
     /// <code>
     /// 用例：
     /// A去酒吧点一瓶啤酒，酒保说吧台没酒了，稍等，现在叫库房送来一箱啤酒。
@@ -29,7 +30,6 @@ namespace Megumin
     ///
     /// 特别注意:要保证A和B的回调执行顺序。
     /// </code>
-    /// 
     /// </remarks>
     public interface IReEntryLock<K, V>
     {
@@ -44,9 +44,20 @@ namespace Megumin
         /// <param name="enable">是否开启</param>
         V WrapCall(K key, Func<V> function, bool enable = true);
 
-        //void WrapCall(K key, Action action, bool enable = true);
-        //void WrapCall(K key, Func<Task> function, bool enable = true);
-        //void WrapCall(K key, Func<ValueTask> function, bool enable = true);
+        /// <inheritdoc cref="WrapCall(K, Func{V}, bool)"/>
+        V WrapCall(K key, Func<K, V> function, bool enable = true);
+
+        /// <inheritdoc cref="WrapCall(K, Func{V}, bool)"/>
+        V WrapCall<P1>(K key, in P1 param1, Func<K, P1, V> function, bool enable = true);
+
+        /// <inheritdoc cref="WrapCall(K, Func{V}, bool)"/>
+        V WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<K, P1, P2, V> function, bool enable = true);
+
+        /// <inheritdoc cref="WrapCall(K, Func{V}, bool)"/>
+        V WrapCall<P1>(K key, in P1 param1, Func<P1, V> function, bool enable = true);
+
+        /// <inheritdoc cref="WrapCall(K, Func{V}, bool)"/>
+        V WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<P1, P2, V> function, bool enable = true);
     }
 
     //function 三种情况，
@@ -115,6 +126,171 @@ namespace Megumin
                 return;
             }
         }
+
+        public void WrapCall(K key, Action<K> action, bool enable = true)
+        {
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            if (enable == false)
+            {
+                action(key);
+                return;
+            }
+
+            if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                var result = source.Task.Result;
+                return;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                action(key);
+                Task.Run(() =>
+                {
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                });
+                return;
+            }
+        }
+
+        public void WrapCall<P1>(K key, in P1 param1, Action<K, P1> action, bool enable = true)
+        {
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            if (enable == false)
+            {
+                action(key, param1);
+                return;
+            }
+
+            if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                var result = source.Task.Result;
+                return;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                action(key, param1);
+                Task.Run(() =>
+                {
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                });
+                return;
+            }
+        }
+
+        public void WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Action<K, P1, P2> action, bool enable = true)
+        {
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            if (enable == false)
+            {
+                action(key, param1, param2);
+                return;
+            }
+
+            if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                var result = source.Task.Result;
+                return;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                action(key, param1, param2);
+                Task.Run(() =>
+                {
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                });
+                return;
+            }
+        }
+
+        public void WrapCall<P1>(K key, in P1 param1, Action<P1> action, bool enable = true)
+        {
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            if (enable == false)
+            {
+                action(param1);
+                return;
+            }
+
+            if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                var result = source.Task.Result;
+                return;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                action(param1);
+                Task.Run(() =>
+                {
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                });
+                return;
+            }
+        }
+
+        public void WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Action<P1, P2> action, bool enable = true)
+        {
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            if (enable == false)
+            {
+                action(param1, param2);
+                return;
+            }
+
+            if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                var result = source.Task.Result;
+                return;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                action(param1, param2);
+                Task.Run(() =>
+                {
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                });
+                return;
+            }
+        }
     }
 
     ///<inheritdoc cref="IReEntryLock{K, V}"/>
@@ -143,6 +319,163 @@ namespace Megumin
                 IsRunningSource.TryAdd(key, source);
 
                 var result = function();
+                Task.Run(() =>
+                {
+                    //先完成在移除，后续访问尽可能使用当前结果。
+                    //当TrySetResult正在执行时遇到其他线程await，其他线程会同步完成，不会影响正确性。
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                });
+                return result;
+            }
+        }
+
+        public V WrapCall(K key, Func<K, V> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key);
+            }
+
+            if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task.Result;
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var result = function(key);
+                Task.Run(() =>
+                {
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                });
+                return result;
+            }
+        }
+
+        public V WrapCall<P1>(K key, in P1 param1, Func<K, P1, V> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key, param1);
+            }
+
+            if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task.Result;
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var result = function(key, param1);
+                Task.Run(() =>
+                {
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                });
+                return result;
+            }
+        }
+
+        public V WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<K, P1, P2, V> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key, param1, param2);
+            }
+
+            if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task.Result;
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var result = function(key, param1, param2);
+                Task.Run(() =>
+                {
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                });
+                return result;
+            }
+        }
+
+        public V WrapCall<P1>(K key, in P1 param1, Func<P1, V> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(param1);
+            }
+
+            if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task.Result;
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var result = function(param1);
+                Task.Run(() =>
+                {
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                });
+                return result;
+            }
+        }
+
+        public V WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<P1, P2, V> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(param1, param2);
+            }
+
+            if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task.Result;
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var result = function(param1, param2);
                 Task.Run(() =>
                 {
                     source.TrySetResult(result);
@@ -183,6 +516,226 @@ namespace Megumin
                 IsRunningSource.TryAdd(key, source);
 
                 var resultTask = function();
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public Task WrapCall(K key, Func<K, Task> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public Task WrapCall<P1>(K key, in P1 param1, Func<K, P1, Task> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key, param1);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key, param1);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public Task WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<K, P1, P2, Task> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key, param1, param2);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key, param1, param2);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public Task WrapCall<P1>(K key, in P1 param1, Func<P1, Task> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(param1);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(param1);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public Task WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<P1, P2, Task> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(param1, param2);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task;
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(param1, param2);
 
                 if (resultTask.IsCompleted == false)
                 {
@@ -250,6 +803,226 @@ namespace Megumin
                 return resultTask;
             }
         }
+
+        public Task<V> WrapCall(K key, Func<K, Task<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task;
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    var result = await resultTask;
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public Task<V> WrapCall<P1>(K key, in P1 param1, Func<K, P1, Task<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key, param1);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task;
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key, param1);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    var result = await resultTask;
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public Task<V> WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<K, P1, P2, Task<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key, param1, param2);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task;
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key, param1, param2);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    var result = await resultTask;
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public Task<V> WrapCall<P1>(K key, in P1 param1, Func<P1, Task<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(param1);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task;
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(param1);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    var result = await resultTask;
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public Task<V> WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<P1, P2, Task<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(param1, param2);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return source.Task;
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(param1, param2);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    var result = await resultTask;
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
     }
 
     ///<inheritdoc cref="IReEntryLock{K, V}"/>
@@ -300,6 +1073,226 @@ namespace Megumin
                 return resultTask;
             }
         }
+
+        public ValueTask WrapCall(K key, Func<K, ValueTask> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return new ValueTask(source.Task);
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public ValueTask WrapCall<P1>(K key, in P1 param1, Func<K, P1, ValueTask> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key, param1);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return new ValueTask(source.Task);
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key, param1);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public ValueTask WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<K, P1, P2, ValueTask> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key, param1, param2);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return new ValueTask(source.Task);
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key, param1, param2);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public ValueTask WrapCall<P1>(K key, in P1 param1, Func<P1, ValueTask> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(param1);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return new ValueTask(source.Task);
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(param1);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public ValueTask WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<P1, P2, ValueTask> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(param1, param2);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return new ValueTask(source.Task);
+            }
+            else
+            {
+                source = new TaskCompletionSource<int>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(param1, param2);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    await resultTask;
+                    source.TrySetResult(1);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
     }
 
     ///<inheritdoc cref="IReEntryLock{K, V}"/>
@@ -333,6 +1326,226 @@ namespace Megumin
                 IsRunningSource.TryAdd(key, source);
 
                 var resultTask = function();
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    var result = await resultTask;
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public ValueTask<V> WrapCall(K key, Func<K, ValueTask<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return new ValueTask<V>(source.Task);
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    var result = await resultTask;
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public ValueTask<V> WrapCall<P1>(K key, in P1 param1, Func<K, P1, ValueTask<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key, param1);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return new ValueTask<V>(source.Task);
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key, param1);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    var result = await resultTask;
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public ValueTask<V> WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<K, P1, P2, ValueTask<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(key, param1, param2);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return new ValueTask<V>(source.Task);
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(key, param1, param2);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    var result = await resultTask;
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public ValueTask<V> WrapCall<P1>(K key, in P1 param1, Func<P1, ValueTask<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(param1);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return new ValueTask<V>(source.Task);
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(param1);
+
+                if (resultTask.IsCompleted == false)
+                {
+                    IsRunningTask[key] = resultTask;
+                }
+
+                Task.Run(async () =>
+                {
+                    var result = await resultTask;
+                    source.TrySetResult(result);
+                    IsRunningSource.TryRemove(key, out var _);
+                    IsRunningTask.Remove(key);
+                });
+
+                return resultTask;
+            }
+        }
+
+        public ValueTask<V> WrapCall<P1, P2>(K key, in P1 param1, in P2 param2, Func<P1, P2, ValueTask<V>> function, bool enable = true)
+        {
+            if (function is null)
+            {
+                throw new ArgumentNullException(nameof(function));
+            }
+
+            if (enable == false)
+            {
+                return function(param1, param2);
+            }
+
+            if (IsRunningTask.TryGetValue(key, out var task))
+            {
+                return task;
+            }
+            else if (IsRunningSource.TryGetValue(key, out var source))
+            {
+                return new ValueTask<V>(source.Task);
+            }
+            else
+            {
+                source = new TaskCompletionSource<V>();
+                IsRunningSource.TryAdd(key, source);
+
+                var resultTask = function(param1, param2);
 
                 if (resultTask.IsCompleted == false)
                 {
