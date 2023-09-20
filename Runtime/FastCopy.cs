@@ -16,10 +16,11 @@ namespace Megumin.IO
         /// <returns></returns>
         public static int CopyDirectory(string sourceDir,
                                         string destinationDir,
-                                        bool recursive = true,
-                                        bool overwrite = false,
                                         bool deleteTargetFolderBeforeCopy = true,
-                                        bool includeSourceDirSelf = false)
+                                        bool includeSourceDirSelf = false,
+                                        bool overwrite = false,
+                                        bool recursive = true,
+                                        Func<string, bool> checkIgnore = null)
         {
             try
             {
@@ -51,9 +52,12 @@ namespace Megumin.IO
                 string[] files = System.IO.Directory.GetFiles(sourceDir);
                 foreach (string file in files)
                 {
-                    string name = System.IO.Path.GetFileName(file);
-                    string dest = System.IO.Path.Combine(destinationDir, name);
-                    System.IO.File.Copy(file, dest, overwrite);//复制文件
+                    if ((checkIgnore?.Invoke(file)) != true)
+                    {
+                        string name = System.IO.Path.GetFileName(file);
+                        string dest = System.IO.Path.Combine(destinationDir, name);
+                        System.IO.File.Copy(file, dest, overwrite);//复制文件
+                    }
                 }
 
                 if (recursive)
@@ -62,16 +66,25 @@ namespace Megumin.IO
                     string[] folders = System.IO.Directory.GetDirectories(sourceDir);
                     foreach (string folder in folders)
                     {
-                        string name = System.IO.Path.GetFileName(folder);
-                        string dest = System.IO.Path.Combine(destinationDir, name);
-                        var dirName = System.IO.Path.GetDirectoryName(folder);
-                        if (name == ".git")
+                        if ((checkIgnore?.Invoke(folder)) != true)
                         {
-                            continue;
-                        }
+                            string name = System.IO.Path.GetFileName(folder);
+                            string dest = System.IO.Path.Combine(destinationDir, name);
+                            var dirName = System.IO.Path.GetDirectoryName(folder);
+                            if (name == ".git")
+                            {
+                                continue;
+                            }
 
-                        //构建目标路径,递归复制文件
-                        CopyDirectory(folder, dest, recursive, overwrite, deleteTargetFolderBeforeCopy);
+                            //构建目标路径,递归复制文件
+                            CopyDirectory(folder,
+                                          dest,
+                                          deleteTargetFolderBeforeCopy,
+                                          false,
+                                          overwrite,
+                                          recursive,
+                                          checkIgnore);
+                        }
                     }
                 }
 
@@ -125,10 +138,13 @@ namespace Megumin.IO
 
         public bool DeleteTargetFolderBeforeCopy = true;
         public bool IncludeSourceDirSelf = true;
+        public bool Overwrite = true;
+        public bool Recursive = true;
 
         [Space]
         [Path]
         public List<string> Targets = new();
+        public List<string> IgnoreExtension = new();
 
         public void Copy()
         {
@@ -136,9 +152,23 @@ namespace Megumin.IO
             {
                 string sourceDir = Source.GetFullPathWithProject();
                 string destinationDir = target.GetFullPathWithProject();
-                CopyUtility.CopyDirectory(sourceDir, destinationDir, includeSourceDirSelf: IncludeSourceDirSelf);
+
+                CopyUtility.CopyDirectory(sourceDir,
+                                          destinationDir,
+                                          DeleteTargetFolderBeforeCopy,
+                                          IncludeSourceDirSelf,
+                                          Overwrite,
+                                          Recursive,
+                                          CheckIgnore);
+
                 Debug.Log($"Copy {sourceDir}  To  {destinationDir}");
             }
+        }
+
+        private bool CheckIgnore(string path)
+        {
+            var ex = Path.GetExtension(path);
+            return IgnoreExtension.Contains(ex);
         }
 
         public override List<string> DestinationDirs => Targets;
@@ -178,7 +208,6 @@ namespace Megumin.IO
 
             CopyUtility.CopyDirectory(sourceDir,
                                       destinationDir,
-                                      true,
                                       DeleteTargetFolderBeforeCopy);
 
             Debug.Log($"Copy {sourceDir}  To  {destinationDir}");
