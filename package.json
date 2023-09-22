@@ -4,7 +4,7 @@
   "version": "1.0.2",
   "unity": "2021.3",
   "unityRelease": "23f1",
-  "description": "Wizard Fast Created.",
+  "description": "The common module code of the Megumin-Plugins.",
   "category": "Megumin",
   "documentationUrl": "https://github.com/0x3f3f3f3f/Megumin.Common",
   "changelogUrl": "",
