@@ -1,7 +1,7 @@
 {
   "name": "com.megumin.common",
   "displayName": "Megumin Common",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "unity": "2021.3",
   "unityRelease": "23f1",
   "description": "The common module code of the Megumin-Plugins.",
