@@ -142,15 +142,70 @@ namespace Megumin
             }
         }
 
+        ///// <summary>
+        ///// 物理测试仅能在主线程调用，这里不用考虑hitColliders多线程访问问题。
+        ///// </summary>
+        //static Collider[] hitColliders = null;
+        //public virtual bool TryPhysicsTest(Vector3 position,
+        //                                   float radius,
+        //                                   ICollection<Collider> results,
+        //                                   Func<Collider, bool> checkCollider = null,
+        //                                   int maxColliders = 20)
+        //{
+
+        //    if (hitColliders == null || hitColliders.Length < maxColliders)
+        //    {
+        //        hitColliders = new Collider[maxColliders];
+        //    }
+
+        //    var layerMask = -1;
+        //    if (this.LayerMask.Enabled)
+        //    {
+        //        layerMask = this.LayerMask.Value;
+        //    }
+
+        //    int numColliders = Physics.OverlapSphereNonAlloc(position, radius, hitColliders, layerMask);
+
+        //    for (int i = 0; i < numColliders; i++)
+        //    {
+        //        var collider = hitColliders[i];
+        //        var go = collider.gameObject;
+        //        if (this.CheckTag(go)
+        //            && this.CheckExclude(go))
+        //        {
+        //            if (checkCollider == null)
+        //            {
+        //                results.Add(collider);
+        //            }
+        //            else
+        //            {
+        //                if (checkCollider(collider))
+        //                {
+        //                    results.Add(collider);
+        //                }
+        //            }
+        //        }
+        //    }
+        //    Array.Clear(hitColliders, 0, hitColliders.Length);
+
+        //    return true;
+        //}
+    }
+
+    public static class GameObjectFilterExtension_D2FF0E88FBAD44D9B5A14BC8F6D403C2
+    {
         /// <summary>
         /// 物理测试仅能在主线程调用，这里不用考虑hitColliders多线程访问问题。
         /// </summary>
         static Collider[] hitColliders = null;
-        public virtual bool TryPhysicsTest(Vector3 position,
-                                           float radius,
-                                           ICollection<Collider> results,
-                                           Func<Collider, bool> checkCollider = null,
-                                           int maxColliders = 20)
+
+        //使用扩展函数，filter为null时仍能正确调用
+        public static bool TryPhysicsTest(this GameObjectFilter filter,
+                                          Vector3 position,
+                                          float radius,
+                                          ICollection<Collider> results,
+                                          Func<Collider, bool> checkCollider = null,
+                                          int maxColliders = 20)
         {
 
             if (hitColliders == null || hitColliders.Length < maxColliders)
@@ -159,9 +214,9 @@ namespace Megumin
             }
 
             var layerMask = -1;
-            if (this.LayerMask.Enabled)
+            if (filter?.LayerMask.Enabled == true)
             {
-                layerMask = this.LayerMask.Value;
+                layerMask = filter.LayerMask.Value;
             }
 
             int numColliders = Physics.OverlapSphereNonAlloc(position, radius, hitColliders, layerMask);
@@ -170,24 +225,31 @@ namespace Megumin
             {
                 var collider = hitColliders[i];
                 var go = collider.gameObject;
-                if (this.CheckTag(go)
-                    && this.CheckExclude(go))
+                if (filter == null)
                 {
-                    if (checkCollider == null)
+                    results.Add(collider);
+                }
+                else
+                {
+                    if (filter.CheckTag(go)
+                    && filter.CheckExclude(go))
                     {
-                        results.Add(collider);
-                    }
-                    else
-                    {
-                        if (checkCollider(collider))
+                        if (checkCollider == null)
                         {
                             results.Add(collider);
+                        }
+                        else
+                        {
+                            if (checkCollider(collider))
+                            {
+                                results.Add(collider);
+                            }
                         }
                     }
                 }
             }
-            Array.Clear(hitColliders, 0, hitColliders.Length);
 
+            Array.Clear(hitColliders, 0, hitColliders.Length);
             return true;
         }
     }
