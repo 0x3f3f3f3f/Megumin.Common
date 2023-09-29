@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-NN
 
+## [1.0.4] - 2023-09-29
+### Changed 
+- GameObjectFilter物理测试改为扩展函数实现。
+
 ## [1.0.3] - 2023-09-24
 ### Added  
 - 增加多层缓存机制类型Cache。  
