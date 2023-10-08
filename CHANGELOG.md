@@ -19,9 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-NN
 
-## [1.0.5] - 2023-10-07
+## [1.0.5] - 2023-10-08
 ### Added   
-- 增加CodeGeneratorInfoAttribute
+- 增加CodeGeneratorInfoAttribute  
+- 抽象ICache接口  
+- 增加新的同步Cache  
+  
+### Changed  
+- 原Cache 重命名为 AsyncCache  
 
 ## [1.0.4] - 2023-09-29
 ### Changed 
