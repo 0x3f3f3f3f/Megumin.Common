@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -127,7 +128,7 @@ namespace Megumin
     ///<inheritdoc/>
     public abstract class DictionaryCache<K, V> : Cache<K, V>
     {
-        protected static Dictionary<K, V> CacheDic { get; } = new();
+        protected static ConcurrentDictionary<K, V> CacheDic { get; } = new();
 
         public override bool TryGetCache(in K key, out V value, object option = null)
         {
