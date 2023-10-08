@@ -8,6 +8,22 @@ using UnityEngine;
 namespace Megumin
 {
     /// <summary>
+    /// 代码生成器的信息。
+    /// </summary>
+    /// <remarks>
+    /// 也用来表示和区分代码是不是由代码生成器生成的。
+    /// </remarks>
+    [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
+    public class CodeGeneratorInfoAttribute : Attribute
+    {
+        public string Name { get; set; }
+        public string Version { get; set; }
+        public string CodeGenericBy { get; set; }
+        public string SourceFilePath { get; set; }
+        public string SourceFileVersion { get; set; }
+    }
+
+    /// <summary>
     /// 代码生成器
     /// </summary>
     public abstract class CodeGenerator

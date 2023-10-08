@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-NN
 
+## [1.0.5] - 2023-10-07
+### Added   
+- 增加CodeGeneratorInfoAttribute
+
 ## [1.0.4] - 2023-09-29
 ### Changed 
 - GameObjectFilter物理测试改为扩展函数实现。
