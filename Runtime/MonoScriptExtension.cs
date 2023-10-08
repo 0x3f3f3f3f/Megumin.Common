@@ -15,7 +15,7 @@ namespace Megumin
     /// <summary>
     /// 类型->文件guid 的查找缓存。保存在EditorPrefs中。只能主线程访问。
     /// </summary>
-    public class TypeGuidCache : Cache<Type, string>
+    public class TypeGuidCache : AsyncCache<Type, string>
     {
         public override bool TryGetCache(in Type key, out string value, object option = null)
         {
@@ -50,7 +50,7 @@ namespace Megumin
     /// <summary>
     /// MonoScript->text缓存，永远同步完成。只有主线程才能反序列化。缓存之后可以非主线程访问。
     /// </summary>
-    public class MonoScriptCodeCache : DictionaryCache<MonoScript, string>
+    public class MonoScriptCodeCache : AsyncDictionaryCache<MonoScript, string>
     {
         public override ValueTask<string> Calculate(MonoScript key, bool forceReCache, object option = null)
         {
@@ -71,7 +71,7 @@ namespace Megumin
     /// 类型->TypeMonoScriptPair缓存，用于快速通过Type找到Type所在的代码文件。
     /// <para/> 缓存查找 -> guid缓存查找并验证 -> 全局暴论搜索代码文本
     /// </summary>
-    public class TypeScriptCache : DictionaryCache<Type, TypeMonoScriptPair>
+    public class TypeScriptCache : AsyncDictionaryCache<Type, TypeMonoScriptPair>
     {
         public static bool Valid(string code, Type type)
         {

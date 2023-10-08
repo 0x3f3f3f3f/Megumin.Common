@@ -15,7 +15,7 @@ namespace Megumin
     /// 只有在K 为int 或者更小的类型时，in会导致更多的开销。
     /// Cache通常用于性能敏感业务，调用次数会非常高，大结构类型做K时，有必要使用in优化。
     /// </remarks>
-    public abstract class Cache<K, V>
+    public abstract class AsyncCache<K, V>
     {
         public bool EnabledReEntryLock { get; set; } = true;
         protected ReEntryLockValueTask<K, V> ReEntryLock { get; } = new();
@@ -112,7 +112,7 @@ namespace Megumin
         }
     }
 
-    public abstract class DictionaryCache<K, V> : Cache<K, V>
+    public abstract class AsyncDictionaryCache<K, V> : AsyncCache<K, V>
     {
         protected static Dictionary<K, V> CacheDic { get; } = new();
 
