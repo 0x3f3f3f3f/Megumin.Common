@@ -53,7 +53,7 @@ namespace Megumin
 
                 if (TagMask.Enabled)
                 {
-                    return TagMask.Value.HasFlag(gameObject.tag);
+                    return TagMask.Value.HasFlag(gameObject);
                 }
 
                 return true;
@@ -77,7 +77,7 @@ namespace Megumin
             {
                 if (TagMask.Enabled)
                 {
-                    return TagMask.Value.HasFlag(gameObject.tag);
+                    return TagMask.Value.HasFlag(gameObject);
                 }
 
                 return true;

@@ -1,4 +1,4 @@
-using Megumin;
+﻿using Megumin;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,7 +30,8 @@ namespace Megumin
         }
 
         /// <summary>
-        /// ��֪������CompareTag�� Tags.Contains �ĸ���ʡһЩ��
+        /// 不知道调用CompareTag和 Tags.Contains 哪个性能更好？
+        /// <para/> 优先使用CompareTag，可以避免访问GameObject.tag，防止gc allocated。
         /// </summary>
         /// <param name="gameObject"></param>
         /// <returns></returns>
