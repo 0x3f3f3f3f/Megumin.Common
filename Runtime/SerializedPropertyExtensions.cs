@@ -12,6 +12,7 @@
 
 #if UNITY_EDITOR
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,14 +25,14 @@ namespace Megumin
 {
     public static class SerializedPropertyExtensions_B4C8CAE8AAFD410981DE4CCC2553F15F
     {
-        static readonly Regex rgx = new Regex(@"\[\d+\]");
+        public static readonly Regex GetIndexRegex = new(@"(?<list>.*)\[(?<index>.+)\]$");
 
         /// <summary>
         /// 获取值的所属对象
         /// </summary>
         /// <param name="property"></param>
         /// <returns></returns>
-        public static object GetOwnerObject(this SerializedProperty property)
+        public static object GetOwner(this SerializedProperty property)
         {
             object obj = property.serializedObject.targetObject;
             string path = property.propertyPath.Replace(".Array.data", "");
@@ -39,14 +40,24 @@ namespace Megumin
 
             for (int i = 0; i < fieldStructure.Length - 1; i++)
             {
-                if (fieldStructure[i].Contains("["))
+                string name = fieldStructure[i];
+                if (name.Contains("["))
                 {
-                    int index = System.Convert.ToInt32(new string(fieldStructure[i].Where(c => char.IsDigit(c)).ToArray()));
-                    obj = GetFieldValueWithIndex(rgx.Replace(fieldStructure[i], ""), obj, index);
+                    var match = GetIndexRegex.Match(name);
+                    if (match.Success)
+                    {
+                        var filedName = match.Groups["list"].Value;
+                        int index = System.Convert.ToInt32(match.Groups["index"].Value);
+                        obj = GetFieldValueWithIndex(filedName, obj, index);
+                    }
+                    else
+                    {
+                        throw new Exception("Index Match Faild.");
+                    }
                 }
                 else
                 {
-                    obj = GetFieldValue(fieldStructure[i], obj);
+                    obj = GetFieldValue(name, obj);
                 }
             }
             return obj;
@@ -59,9 +70,9 @@ namespace Megumin
         /// <param name="property"></param>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static bool TryGetOwnerObject<T>(this SerializedProperty property, out T obj)
+        public static bool TryGetOwner<T>(this SerializedProperty property, out T obj)
         {
-            var owner = GetOwnerObject(property);
+            var owner = GetOwner(property);
             if (owner is T tObj)
             {
                 obj = tObj;
@@ -80,14 +91,24 @@ namespace Megumin
 
             for (int i = 0; i < fieldStructure.Length; i++)
             {
-                if (fieldStructure[i].Contains("["))
+                string name = fieldStructure[i];
+                if (name.Contains("["))
                 {
-                    int index = System.Convert.ToInt32(new string(fieldStructure[i].Where(c => char.IsDigit(c)).ToArray()));
-                    obj = GetFieldValueWithIndex(rgx.Replace(fieldStructure[i], ""), obj, index);
+                    var match = GetIndexRegex.Match(name);
+                    if (match.Success)
+                    {
+                        var filedName = match.Groups["list"].Value;
+                        int index = System.Convert.ToInt32(match.Groups["index"].Value);
+                        obj = GetFieldValueWithIndex(filedName, obj, index);
+                    }
+                    else
+                    {
+                        throw new Exception("Index Match Faild.");
+                    }
                 }
                 else
                 {
-                    obj = GetFieldValue(fieldStructure[i], obj);
+                    obj = GetFieldValue(name, obj);
                 }
             }
             return (T)obj;
@@ -99,28 +120,26 @@ namespace Megumin
             string path = property.propertyPath.Replace(".Array.data", "");
             string[] fieldStructure = path.Split('.');
 
-            for (int i = 0; i < fieldStructure.Length - 1; i++)
+            obj = GetOwner(property);
+
+            string name = fieldStructure.Last();
+            if (name.Contains("["))
             {
-                if (fieldStructure[i].Contains("["))
+                var match = GetIndexRegex.Match(name);
+                if (match.Success)
                 {
-                    int index = System.Convert.ToInt32(new string(fieldStructure[i].Where(c => char.IsDigit(c)).ToArray()));
-                    obj = GetFieldValueWithIndex(rgx.Replace(fieldStructure[i], ""), obj, index);
+                    var filedName = match.Groups["list"].Value;
+                    int index = System.Convert.ToInt32(match.Groups["index"].Value);
+                    return SetFieldValueWithIndex(filedName, obj, index, value);
                 }
                 else
                 {
-                    obj = GetFieldValue(fieldStructure[i], obj);
+                    throw new Exception("Index Match Faild.");
                 }
-            }
-
-            string fieldName = fieldStructure.Last();
-            if (fieldName.Contains("["))
-            {
-                int index = System.Convert.ToInt32(new string(fieldName.Where(c => char.IsDigit(c)).ToArray()));
-                return SetFieldValueWithIndex(rgx.Replace(fieldName, ""), obj, index, value);
             }
             else
             {
-                return SetFieldValue(fieldName, obj, value);
+                return SetFieldValue(name, obj, value);
             }
         }
 
