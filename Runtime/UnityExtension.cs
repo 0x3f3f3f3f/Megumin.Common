@@ -35,12 +35,18 @@ namespace Megumin
             {
                 var ab = Assembly.GetAssembly(typeof(EditorWindow));
                 var propertyEditor = ab.GetType("UnityEditor.PropertyEditor");
+                Type[] types = new Type[] { typeof(UnityEngine.Object), typeof(bool) };
                 OpenPropertyEditorMethod = propertyEditor.GetMethod("OpenPropertyEditor",
-                                                              BindingFlags.NonPublic
-                                                              | BindingFlags.Static);
+                                                                    BindingFlags.NonPublic | BindingFlags.Static,
+                                                                    null,
+                                                                    types,
+                                                                    null);
             }
 
-            OpenPropertyEditorMethod?.Invoke(null, new object[] { @object, true });
+            if (@object)
+            {
+                OpenPropertyEditorMethod?.Invoke(null, new object[] { @object, true });
+            }
 #endif
         }
     }
