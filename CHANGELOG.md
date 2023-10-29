@@ -19,6 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-NN
 
+## [1.0.6] - 2023-10-29
+### Added   
+- 增加SerializedProperty扩展
+- 增加GUI颜色作用域
+- 增加扩展函数
+ 
+### Fixed  
+- 优化GameObjectFilter，尽量不访问GameObject.tag，会导致gc allocated
+
 ## [1.0.5] - 2023-10-08
 ### Added   
 - 增加CodeGeneratorInfoAttribute  

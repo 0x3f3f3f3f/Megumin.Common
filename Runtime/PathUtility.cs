@@ -84,6 +84,38 @@ namespace Megumin
         {
             return Path.GetFullPath(Path.Combine(ProjectPath, path));
         }
+
+        /// <summary>
+        /// 尝试从项目中删除指定路径的文件或文件夹
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static bool TryDeleleFromProject(string path)
+        {
+            var fullpath = GetFullPathWithProject(path);
+            var attri = File.GetAttributes(fullpath);
+
+            if (attri.HasFlag(FileAttributes.Directory))
+            {
+                if (Directory.Exists(fullpath))
+                {
+                    Directory.Delete(fullpath, true);
+                    Debug.Log($"Delete    {fullpath}");
+                    return true;
+                }
+            }
+            else
+            {
+                if (File.Exists(fullpath))
+                {
+                    File.Delete(fullpath);
+                    Debug.Log($"Delete    {fullpath}");
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
 }
