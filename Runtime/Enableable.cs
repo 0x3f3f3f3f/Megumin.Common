@@ -115,12 +115,17 @@ namespace Megumin
         [SerializeField]
         public T Value;
 
-        public Enable() : this(true, default)
+        //public Enable() : this(false, default)
+        //{
+
+        //}
+
+        public Enable(T def) : this(false, def)
         {
 
         }
 
-        public Enable(bool enabled = true, T def = default)
+        public Enable(bool enabled = false, T def = default)
         {
             Enabled = enabled;
             Value = def;
