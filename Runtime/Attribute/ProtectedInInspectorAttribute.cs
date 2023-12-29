@@ -1,4 +1,5 @@
-﻿using Megumin;
+﻿using System;
+using Megumin;
 using UnityEngine;
 
 namespace Megumin
@@ -6,6 +7,7 @@ namespace Megumin
     /// <summary>
     /// 在检视面板中保护,只有先勾选才能修改
     /// </summary>
+    /// [Obsolete("与Enable<T> 显示相同，可能引起歧义。TODO换一种显示UI")]
     [System.AttributeUsage(System.AttributeTargets.Field)]
     public sealed class ProtectedInInspectorAttribute : PropertyAttribute
     {
