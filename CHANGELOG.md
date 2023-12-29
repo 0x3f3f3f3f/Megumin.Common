@@ -19,6 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-NN
 
+## [1.0.7] - 2023-12-29
+### Added   
+- 增加选中堆栈
+- 增加扩展函数测试GameObject父代子代
+- 增加外部dll引用宏
+
+### Changed  
+- Enable默认为关闭状态
+
 ## [1.0.6] - 2023-10-29
 ### Added   
 - 增加SerializedProperty扩展

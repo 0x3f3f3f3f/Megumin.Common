@@ -115,10 +115,10 @@ namespace Megumin
         [SerializeField]
         public T Value;
 
-        //public Enable() : this(false, default)
-        //{
-
-        //}
+        public Enable() : this(false, default)
+        {
+            //必须有无参构造函数，不然Activator.CreateInstance反射构造时会失败报错。
+        }
 
         public Enable(T def) : this(false, def)
         {
