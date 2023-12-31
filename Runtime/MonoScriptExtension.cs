@@ -338,6 +338,22 @@ namespace Megumin
 #endif
         }
 
+        /// <summary>
+        /// 在unity编辑中选中类型所在的脚本
+        /// </summary>
+        /// <param name="type"></param>
+        public static async void PingScript(this Type type)
+        {
+
+#if UNITY_EDITOR
+            var obj = await GetMonoScript(type);
+            if (obj)
+            {
+                EditorGUIUtility.PingObject(obj);
+            }
+#endif
+        }
+
     }
 
 }
