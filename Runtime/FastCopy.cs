@@ -9,6 +9,19 @@ namespace Megumin.IO
     public static class CopyUtility
     {
         /// <summary>
+        /// 复制文件到指定目录
+        /// </summary>
+        /// <param name="sourceFileName"></param>
+        /// <param name="destinationDir"></param>
+        /// <param name="overwrite"></param>
+        public static void CopyFileToDirectory(string sourceFileName, string destinationDir, bool overwrite = false)
+        {
+            string name = System.IO.Path.GetFileName(sourceFileName);
+            string dest = System.IO.Path.Combine(destinationDir, name);
+            System.IO.File.Copy(sourceFileName, dest, overwrite);//复制文件
+        }
+
+        /// <summary>
         /// 复制文件夹及文件
         /// </summary>
         /// <param name="sourceDir">原文件路径</param>
@@ -54,9 +67,7 @@ namespace Megumin.IO
                 {
                     if ((checkIgnore?.Invoke(file)) != true)
                     {
-                        string name = System.IO.Path.GetFileName(file);
-                        string dest = System.IO.Path.Combine(destinationDir, name);
-                        System.IO.File.Copy(file, dest, overwrite);//复制文件
+                        CopyFileToDirectory(file, destinationDir, overwrite);
                     }
                 }
 
@@ -97,7 +108,6 @@ namespace Megumin.IO
             }
 
         }
-
     }
 
     public abstract class CopyInfo
@@ -125,6 +135,32 @@ namespace Megumin.IO
                 if (Directory.Exists(targetFolder))
                 {
                     Directory.Delete(targetFolder, true);
+                }
+            }
+        }
+    }
+
+    [Serializable]
+    public class FileCopyInfo : CopyInfo
+    {
+        [Path(IsFolder = false)]
+        public List<string> File = new();
+        public bool Overwrite = true;
+
+        [Space]
+        [Path]
+        public List<string> Targets = new();
+        public override List<string> DestinationDirs => Targets;
+
+        public void Copy()
+        {
+            foreach (var item in DestinationDirs)
+            {
+                string destinationDir = item.GetFullPathWithProject();
+                foreach (var filePath in File)
+                {
+                    CopyUtility.CopyFileToDirectory(filePath, destinationDir, Overwrite);
+                    Debug.Log($"Copy {filePath}  To  {destinationDir}");
                 }
             }
         }
@@ -228,13 +264,19 @@ namespace Megumin.IO
 
     public class FastCopy : ScriptableObject
     {
+        public List<FileCopyInfo> FileCopy = new();
         [FormerlySerializedAs("ops")]
-        public List<DirectoryCopyInfo> DirectoryCopy = new List<DirectoryCopyInfo>();
-        public List<UPMCopyInfo> UPMCopy = new List<UPMCopyInfo>();
+        public List<DirectoryCopyInfo> DirectoryCopy = new();
+        public List<UPMCopyInfo> UPMCopy = new();
 
         [ContextMenu("Copy")]
         public void Copy()
         {
+            foreach (var fileCopy in FileCopy)
+            {
+                fileCopy.Copy();
+            }
+
             foreach (DirectoryCopyInfo op in DirectoryCopy)
             {
                 op.Copy();
@@ -249,6 +291,11 @@ namespace Megumin.IO
         [ContextMenu("OpenTarget")]
         public void OpenTarget()
         {
+            foreach (var fileCopy in FileCopy)
+            {
+                fileCopy.OpenTarget();
+            }
+
             foreach (DirectoryCopyInfo op in DirectoryCopy)
             {
                 op.OpenTarget();
