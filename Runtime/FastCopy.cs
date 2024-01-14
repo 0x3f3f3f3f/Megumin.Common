@@ -14,11 +14,16 @@ namespace Megumin.IO
         /// <param name="sourceFileName"></param>
         /// <param name="destinationDir"></param>
         /// <param name="overwrite"></param>
-        public static void CopyFileToDirectory(string sourceFileName, string destinationDir, bool overwrite = false)
+        public static int CopyFileToDirectory(string sourceFileName, string destinationDir, bool overwrite = false)
         {
-            string name = System.IO.Path.GetFileName(sourceFileName);
-            string dest = System.IO.Path.Combine(destinationDir, name);
-            System.IO.File.Copy(sourceFileName, dest, overwrite);//复制文件
+            if (File.Exists(sourceFileName))
+            {
+                string name = System.IO.Path.GetFileName(sourceFileName);
+                string dest = System.IO.Path.Combine(destinationDir, name);
+                System.IO.File.Copy(sourceFileName, dest, overwrite);//复制文件
+                return 0;
+            }
+            return -1;
         }
 
         /// <summary>
@@ -159,8 +164,11 @@ namespace Megumin.IO
                 string destinationDir = item.GetFullPathWithProject();
                 foreach (var filePath in File)
                 {
-                    CopyUtility.CopyFileToDirectory(filePath, destinationDir, Overwrite);
-                    Debug.Log($"Copy {filePath}  To  {destinationDir}");
+                    var result = CopyUtility.CopyFileToDirectory(filePath, destinationDir, Overwrite);
+                    if (result >= 0)
+                    {
+                        Debug.Log($"Copy File {filePath}  To  {destinationDir}");
+                    }
                 }
             }
         }
@@ -186,18 +194,21 @@ namespace Megumin.IO
         {
             foreach (string target in DestinationDirs)
             {
-                string sourceDir = Source.GetFullPathWithProject();
-                string destinationDir = target.GetFullPathWithProject();
+                if (!string.IsNullOrEmpty(Source))
+                {
+                    string sourceDir = Source.GetFullPathWithProject();
+                    string destinationDir = target.GetFullPathWithProject();
 
-                CopyUtility.CopyDirectory(sourceDir,
-                                          destinationDir,
-                                          DeleteTargetFolderBeforeCopy,
-                                          IncludeSourceDirSelf,
-                                          Overwrite,
-                                          Recursive,
-                                          CheckIgnore);
+                    CopyUtility.CopyDirectory(sourceDir,
+                                              destinationDir,
+                                              DeleteTargetFolderBeforeCopy,
+                                              IncludeSourceDirSelf,
+                                              Overwrite,
+                                              Recursive,
+                                              CheckIgnore);
 
-                Debug.Log($"Copy {sourceDir}  To  {destinationDir}");
+                    Debug.Log($"Copy Directory {sourceDir}  To  {destinationDir}");
+                }
             }
         }
 
@@ -246,7 +257,7 @@ namespace Megumin.IO
                                       destinationDir,
                                       DeleteTargetFolderBeforeCopy);
 
-            Debug.Log($"Copy {sourceDir}  To  {destinationDir}");
+            Debug.Log($"Copy UPM {sourceDir}  To  {destinationDir}");
         }
 
         public void Copy()
