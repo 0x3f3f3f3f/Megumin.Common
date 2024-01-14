@@ -148,7 +148,7 @@ namespace Megumin.IO
     [Serializable]
     public class FileCopyInfo : CopyInfo
     {
-        [Path(IsFolder = false)]
+        [Path(IsFolder = false, ForceDrag = true)]
         public List<string> File = new();
         public bool Overwrite = true;
 
