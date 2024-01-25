@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
 using UnityEngine.Profiling;
+using System.IO;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -65,6 +67,40 @@ namespace Megumin
         public string GUID { get; set; }
         public string Code { get; set; }
         public MonoScript MonoScript { get; set; }
+        public int Line { get; set; }
+
+        public void FindLine()
+        {
+            if (string.IsNullOrEmpty(Code))
+            {
+                return;
+            }
+
+            if (Type == null)
+            {
+                return;
+            }
+
+            using (StringReader stringReader = new StringReader(Code))
+            {
+                string lineCode;
+                int lineNumber = 1;//行号从1开始
+                while ((lineCode = stringReader.ReadLine()) != null)
+                {
+                    if (lineCode.Contains($"class {Type.Name}"))
+                    {
+                        Line = lineNumber;
+                        break;
+                    }
+
+                    if (stringReader.Peek() <= 0)
+                    {
+                        break;
+                    }
+                    lineNumber++;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -117,9 +153,37 @@ namespace Megumin
         {
             //Debug.LogError($"{Time.frameCount} GetMonoScript2   {key.Name}");
             TypeMonoScriptPair result = new();
-            MonoScript script = null;
-
             result.Type = key;
+
+            var (script, code) = await GetValidMonoScript(key);
+
+            if (script)
+            {
+                result.Code = code;
+                result.MonoScript = script;
+
+                //更新guid到TypeGuidCache中
+                var path = AssetDatabase.GetAssetPath(script);
+                var newGUID = AssetDatabase.AssetPathToGUID(path);
+                result.GUID = newGUID;
+                MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.TypeGuidCache.UpdateCache(key, newGUID);
+
+                //异步计算行号
+                Task.Run(result.FindLine);
+
+                return result;
+            }
+            else
+            {
+                Debug.LogError("No match script");
+                return null;
+            }
+        }
+
+        public async Task<(MonoScript script, string code)> GetValidMonoScript(Type key)
+        {
+            MonoScript script = null;
+            string code = null;
 
             //通过GUID缓存找到MonoScript
             var guid = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.TypeGuidCache.Get(key);
@@ -130,15 +194,13 @@ namespace Megumin
 
                 if (script)
                 {
-                    result.GUID = guid;
-                    result.Code = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.MonoScriptCodeCache.Get(script);
-                    result.MonoScript = script;
+                    code = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.MonoScriptCodeCache.Get(script);
                     //异步验证脚本是否真的包含指定类型
                     //下面可能会调用AssetDatabase.GetAssetPath，需要保证后续主线程调用。
-                    var success = Valid(result.Code, key); //await Task.Run(() => { return Valid(result.Code, key); }).ConfigureAwait(false);
+                    var success = Valid(code, key); //await Task.Run(() => { return Valid(result.Code, key); }).ConfigureAwait(false);
                     if (success)
                     {
-                        return result;
+                        return (script, code);
                     }
                 }
             }
@@ -150,34 +212,16 @@ namespace Megumin
             var list = MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.GetAllMonoScripts();
             foreach (var item in list)
             {
-                var code = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.MonoScriptCodeCache.Get(item);
+                code = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.MonoScriptCodeCache.Get(item);
                 var success = Valid(code, key); // await Task.Run(() => { return Valid(code, key); });
                 if (success)
                 {
                     script = item;
-                    break;
+                    return (script, code);
                 }
             }
 
-            if (script)
-            {
-                //从缓存中读取代码文本
-                result.Code = await MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.MonoScriptCodeCache.Get(script);
-
-                result.MonoScript = script;
-
-                //更新guid到TypeGuidCache中
-                var path = AssetDatabase.GetAssetPath(script);
-                var newGUID = AssetDatabase.AssetPathToGUID(path);
-                result.GUID = newGUID;
-                MonoScriptExtension_5723CD2B78954C329E0643673F68FE22.TypeGuidCache.UpdateCache(key, newGUID);
-                return result;
-            }
-            else
-            {
-                Debug.LogError("No match script");
-                return null;
-            }
+            return (script, code);
         }
     }
 
@@ -262,10 +306,17 @@ namespace Megumin
         {
 
 #if UNITY_EDITOR
-            var obj = await GetMonoScript(type);
-            if (obj)
+            if (type is null)
             {
-                AssetDatabase.OpenAsset(obj, 0, 0);
+                return;
+            }
+
+            //Debug.LogError($"{Time.frameCount} GetMonoScript1   {type.Name}");
+            var result = await TypeScriptCache.Get(type).ConfigureAwait(false);
+
+            if (result.MonoScript)
+            {
+                AssetDatabase.OpenAsset(result.MonoScript, result.Line, 0);
             }
 #endif
 
@@ -283,6 +334,22 @@ namespace Megumin
             if (obj)
             {
                 Selection.activeObject = obj;
+            }
+#endif
+        }
+
+        /// <summary>
+        /// 在unity编辑中选中类型所在的脚本
+        /// </summary>
+        /// <param name="type"></param>
+        public static async void PingScript(this Type type)
+        {
+
+#if UNITY_EDITOR
+            var obj = await GetMonoScript(type);
+            if (obj)
+            {
+                EditorGUIUtility.PingObject(obj);
             }
 #endif
         }

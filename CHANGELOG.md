@@ -19,6 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-NN
 
+## [1.0.8] - 2024-01-24
+
+### Added   
+- 查找UnityScript时，查找类型定义行号。
+- 增加RefSetterAttribute，用于Unity设置已存在的引用对象。
+
+### Fixed  
+- 修复文件拷贝操作空引用。
+
+
 ## [1.0.7] - 2023-12-29
 ### Added   
 - 增加选中堆栈

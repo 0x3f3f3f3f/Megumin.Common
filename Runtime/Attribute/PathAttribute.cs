@@ -10,7 +10,8 @@ namespace Megumin
     {
         public bool RelativePath { get; set; } = true;
         public bool IsFolder { get; set; } = true;
-        public string Exetension;
+        public string Exetension { get; set; }
+        public bool ForceDrag { get; set; }
     }
 }
 
@@ -31,7 +32,7 @@ namespace UnityEditor.Megumin
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             var propertyPosition = position;
-            propertyPosition.width -= 86;
+            propertyPosition.width -= 84;
 
             var buttonPosition = position;
             buttonPosition.width = 80;
@@ -75,7 +76,23 @@ namespace UnityEditor.Megumin
             }
             else
             {
-                EditorGUI.PropertyField(propertyPosition, property, label);
+                if (myattribute.ForceDrag)
+                {
+                    var newObj = EditorGUI.ObjectField(propertyPosition, null, typeof(UnityEngine.Object), false);
+                    if (newObj)
+                    {
+                        var newPath = AssetDatabase.GetAssetPath(newObj);
+                        if (myattribute.RelativePath)
+                        {
+                            newPath = ChangeToRelative(newPath);
+                        }
+                        property.stringValue = newPath;
+                    }
+                }
+                else
+                {
+                    EditorGUI.PropertyField(propertyPosition, property, label);
+                }
             }
 
             if (property.SelectPath(GUI.Button(buttonPosition, "Select"),
@@ -83,14 +100,7 @@ namespace UnityEditor.Megumin
             {
                 if (myattribute.RelativePath)
                 {
-                    if (pathResult.Contains(":/"))
-                    {
-                        //转换为相对路径。
-                        var p1 = new System.Uri(pathResult);
-                        var p2 = new System.Uri(PathUtility.ProjectPath);
-                        var r = p2.MakeRelativeUri(p1);
-                        pathResult = r.ToString();
-                    }
+                    pathResult = ChangeToRelative(pathResult);
                 }
 
                 property.stringValue = pathResult;
@@ -117,6 +127,24 @@ namespace UnityEditor.Megumin
             //        GUIUtility.ExitGUI();
             //    }
             //}
+        }
+
+        /// <summary>
+        /// 转换为相对路径。
+        /// </summary>
+        /// <param name="pathResult"></param>
+        /// <returns></returns>
+        public static string ChangeToRelative(string pathResult)
+        {
+            if (pathResult.Contains(":/"))
+            {
+                var p1 = new System.Uri(pathResult);
+                var p2 = new System.Uri(PathUtility.ProjectPath);
+                var r = p2.MakeRelativeUri(p1);
+                pathResult = r.ToString();
+            }
+
+            return pathResult;
         }
     }
 }

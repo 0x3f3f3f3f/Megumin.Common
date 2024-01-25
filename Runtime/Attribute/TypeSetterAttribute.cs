@@ -33,7 +33,7 @@ namespace UnityEditor.Megumin
             if (property.propertyType == UnityEditor.SerializedPropertyType.String)
             {
                 var propertyPosition = position;
-                propertyPosition.width -= 86;
+                propertyPosition.width -= 84;
 
                 var buttonPosition = position;
                 buttonPosition.width = 80;
