@@ -8,6 +8,10 @@ namespace Megumin
 {
     public class UnityPackageNameAttribute : PropertyAttribute
     {
+        /// <summary>
+        /// 设置包含的 <see cref=" UnityEditor.PackageManager.PackageSource"/>
+        /// </summary>
+        public string[] Source { get; set; }
     }
 }
 
@@ -29,6 +33,7 @@ namespace UnityEditor.Megumin
         {
             using (new EditorGUI.PropertyScope(position, label, property))
             {
+                UnityPackageNameAttribute attri = attribute as UnityPackageNameAttribute;
                 if (property.propertyType == SerializedPropertyType.String)
                 {
                     //绘制选项菜单
@@ -38,6 +43,12 @@ namespace UnityEditor.Megumin
                     if (displayedOptions == null)
                     {
                         var infos = UnityEditor.PackageManager.PackageInfo.GetAllRegisteredPackages();
+
+                        if (attri.Source != null)
+                        {
+                            infos = infos.Where(elem => attri.Source.Contains(elem.source.ToString())).ToArray();
+                        }
+
                         displayedOptions = new GUIContent[infos.Count() + 1];
                         displayedOptions[0] = new("string.Empty");
                         for (int i = 0; i < displayedOptions.Length - 1; i++)
