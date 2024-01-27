@@ -222,7 +222,7 @@ namespace Megumin.IO
     }
 
     [Serializable]
-    public class UPMCopyInfo : CopyInfo
+    public class UnityPackageCopyInfo : CopyInfo
     {
         [Space]
         public List<string> packageName = new();
@@ -278,7 +278,8 @@ namespace Megumin.IO
         public List<FileCopyInfo> FileCopy = new();
         [FormerlySerializedAs("ops")]
         public List<DirectoryCopyInfo> DirectoryCopy = new();
-        public List<UPMCopyInfo> UPMCopy = new();
+        [FormerlySerializedAs("UPMCopy")]
+        public List<UnityPackageCopyInfo> UnityPackageCopy = new();
 
         [ContextMenu("Copy")]
         public void Copy()
@@ -293,7 +294,7 @@ namespace Megumin.IO
                 op.Copy();
             }
 
-            foreach (var item in UPMCopy)
+            foreach (var item in UnityPackageCopy)
             {
                 item.Copy();
             }
@@ -312,7 +313,7 @@ namespace Megumin.IO
                 op.OpenTarget();
             }
 
-            foreach (var item in UPMCopy)
+            foreach (var item in UnityPackageCopy)
             {
                 item.OpenTarget();
             }
