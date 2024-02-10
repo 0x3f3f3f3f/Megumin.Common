@@ -12,8 +12,13 @@ com.megumin插件包公共代码。
   在检视面板中保护,只有先勾选才能修改。
 - ReadOnlyInInspectorAttribute  
   在Inpector显示为只读。
+- RefSetterAttribute
+  用于将一个序列化对象设置为引用的对象，而不是构造新对象。
 - TagAttribute  
   用于string增加Tag下拉菜单。
+- TypeSetterAttribute
+  创建类型选项菜单，快速将一个string序列化字段设置为类型全名。
+
 
 ## Class
 - Cache  
@@ -35,6 +40,8 @@ com.megumin插件包公共代码。
   保证一个长时间任务执行期间尝试多次调用，返回相同的任务，不多次开始新任务。任务完成后，则可以再次开启新任务。  
 - TagMask  
   设置识别tag。  
+- TransformBFS，TransformDFS
+  无GC alloca的广度优先和深度优先迭代器，支持设置深度。
 - UnityMacro  
   字符串宏替换工具类。  
 - UnityTraceListener  
