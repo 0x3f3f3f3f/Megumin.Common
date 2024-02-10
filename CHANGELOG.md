@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - YYYY-MM-NN
 
+## [1.0.9] - 2024-02-10
+### Added  
+- Transform无GC alloca的广度优先和深度优先迭代器，支持设置深度。
+- UnityPackageNameAttribute，用于快速设置包名。
+
 ## [1.0.8] - 2024-01-24
 
 ### Added   
