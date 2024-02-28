@@ -157,6 +157,11 @@ namespace Megumin
         //    return default;
         //}
     }
+
+    public interface IEnableValue<V>
+    {
+        Enable<V> Value { get; }
+    }
 }
 
 #if UNITY_EDITOR
